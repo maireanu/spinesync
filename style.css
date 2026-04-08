@@ -1083,11 +1083,28 @@ canvas#progress-chart { width: 100%; border-radius: var(--radius); background: v
   color: var(--text-3);
 }
 .session-done-badge {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   padding: 10px;
   color: var(--secondary, #10b981);
   font-weight: 700;
   font-size: 14px;
+}
+.btn-undo-session {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--secondary, #10b981);
+  color: var(--secondary, #10b981);
+  background: transparent;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.btn-undo-session:active {
+  opacity: 0.7;
 }
 
 /* ── GIF container ─────────────────────────────────────────── */

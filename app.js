@@ -252,6 +252,11 @@ function saveLog(log) {
   lsSet(LS.LOGS,logs);
 }
 
+function removeLog(dateStr, sessionType) {
+  const logs=getLogs().filter(l=>!(l.date===dateStr&&l.type===sessionType));
+  lsSet(LS.LOGS,logs);
+}
+
 function isSessionDone(dateStr, sessionType) {
   return getLogs().some(l=>l.date===dateStr&&l.type===sessionType&&l.completedAll);
 }
@@ -388,6 +393,14 @@ function renderTodayView(){
       }
     });
   });
+
+  cont.querySelectorAll('[data-undo-session]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      removeLog(todayStr, btn.dataset.undoSession);
+      renderTodayView();
+      showToast('Session marked as undone');
+    });
+  });
 }
 
 function buildSessionCard(sType,phase,strengthDay,done,idx,total,phaseName,todayStr){
@@ -411,7 +424,7 @@ function buildSessionCard(sType,phase,strengthDay,done,idx,total,phaseName,today
   }
 
   if(done){
-    actionBtn=`<div class="session-done-badge">✓ Complete</div>`;
+    actionBtn=`<div class="session-done-badge">✓ Complete<button class="btn-undo-session" data-undo-session="${sType}" aria-label="Mark as undone">Undo</button></div>`;
   } else {
     const muted=idx>0&&!isSessionDone(todayStr,'kinetotherapy')&&!isSessionDone(todayStr,'strength');
     actionBtn=`<button class="btn-start-session${muted?' btn-start-muted':''}" data-start-session="${sType}">
