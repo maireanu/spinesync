@@ -1,0 +1,70 @@
+{
+  "startDate": "2026-04-07",
+  "endDate": "2026-10-07",
+  "totalWeeks": 26,
+  "phases": [
+    { "id": 1, "name": "Foundation",  "weekStart": 1,  "weekEnd": 8  },
+    { "id": 2, "name": "Progression", "weekStart": 10, "weekEnd": 17 },
+    { "id": 3, "name": "Advanced",    "weekStart": 19, "weekEnd": 26 }
+  ],
+  "transitions": [
+    { "week": 9,  "from": 1, "to": 2 },
+    { "week": 18, "from": 2, "to": 3 }
+  ],
+  "weeklyPattern": {
+    "1": "kinetotherapy",
+    "2": "strength",
+    "3": "kinetotherapy",
+    "4": "strength",
+    "5": "kinetotherapy",
+    "6": "kinetotherapy",
+    "0": "strength"
+  },
+  "strengthDayOrder": [2, 4, 0],
+  "strengthPatterns": [
+    ["A", "B", "C"],
+    ["B", "C", "A"],
+    ["C", "A", "B"]
+  ],
+  "milestones": {
+    "month1": [
+      "All Phase 1 kinetotherapy exercises with correct form",
+      "Towel thoracic extension — 4-5 positions, 20 sec hold",
+      "Bird-Dog — 10 reps each side",
+      "Wall Angels — 10 reps with wall contact",
+      "Strength: bodyweight or 2-3 kg, technique focus only",
+      "Cardio: Zone 2 only, 10 min walk/cycle"
+    ],
+    "month2": [
+      "Plank — 20 seconds without form break",
+      "10 full push-ups or 15 incline push-ups",
+      "Towel extension hold increased to 30 sec",
+      "First 2×4 interval completed (Week 5)",
+      "Nasal breathing during Zone 2 walk for 5+ minutes"
+    ],
+    "month3": [
+      "Phase 2 kinetotherapy exercises added",
+      "Dumbbell weight +1-2 kg on at least one exercise",
+      "2×4 intervals reaching Zone 4 HR",
+      "Record resting heart rate baseline"
+    ],
+    "month4": [
+      "3×4 intervals attempted",
+      "4 sets per exercise on strength days",
+      "Supersets introduced on strength days",
+      "Nasal breathing for full Zone 2 cardio block"
+    ],
+    "month5": [
+      "Phase 3 kinetotherapy exercises added",
+      "Bulgarian split squat and tempo training",
+      "3×4 intervals completed consistently",
+      "Posture photos — compare to Month 1"
+    ],
+    "month6": [
+      "Full 4×4 interval protocol attempted",
+      "All Phase 3 exercises mastered",
+      "Heart rate improved vs Month 1 at same effort",
+      "10+ min nasal-only breathing during Zone 2"
+    ]
+  }
+}

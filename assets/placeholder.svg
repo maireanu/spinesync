@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 200" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e3a5f"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <style>
+      .body { animation: breathe 3s ease-in-out infinite; transform-origin: 140px 100px; }
+      @keyframes breathe {
+        0%,100% { transform: scaleY(1); }
+        50%      { transform: scaleY(1.04); }
+      }
+      .arm-l { animation: armL 2s ease-in-out infinite; transform-origin: 120px 90px; }
+      @keyframes armL {
+        0%,100% { transform: rotate(0deg); }
+        50%      { transform: rotate(-18deg); }
+      }
+      .arm-r { animation: armR 2s ease-in-out infinite; transform-origin: 160px 90px; }
+      @keyframes armR {
+        0%,100% { transform: rotate(0deg); }
+        50%      { transform: rotate(18deg); }
+      }
+      .label { font-family: system-ui, sans-serif; font-size: 11px; fill: #64748b; }
+      .title { font-family: system-ui, sans-serif; font-size: 13px; fill: #94a3b8; font-weight: 600; }
+    </style>
+  </defs>
+  <!-- Background -->
+  <rect width="280" height="200" rx="12" fill="url(#bg)"/>
+  <!-- Figure -->
+  <g class="body">
+    <!-- Head -->
+    <circle cx="140" cy="55" r="16" fill="#334155"/>
+    <!-- Torso -->
+    <rect x="124" y="72" width="32" height="42" rx="8" fill="#334155"/>
+    <!-- Legs -->
+    <rect x="125" y="112" width="12" height="36" rx="6" fill="#334155"/>
+    <rect x="143" y="112" width="12" height="36" rx="6" fill="#334155"/>
+  </g>
+  <!-- Arms animate -->
+  <rect class="arm-l" x="104" y="73" width="20" height="10" rx="5" fill="#475569"/>
+  <rect class="arm-r" x="156" y="73" width="20" height="10" rx="5" fill="#475569"/>
+  <!-- Text -->
+  <text x="140" y="168" text-anchor="middle" class="title">Exercise Preview</text>
+  <text x="140" y="184" text-anchor="middle" class="label">No GIF added yet — tap Edit to add one</text>
+</svg>
