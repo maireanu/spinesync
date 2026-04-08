@@ -152,10 +152,10 @@ function getCardioProtocol(phase) {
 }
 
 function getCategoryColor(cat) {
-  return {warmup:'#f59e0b',main:'#2563eb',cooldown:'#10b981'}[cat]||'#64748b';
+  return {warmup:'#f59e0b',main:'#059669',cooldown:'#38bdf8'}[cat]||'#64748b';
 }
 function getCategoryBg(cat) {
-  return {warmup:'#fef3c7',main:'#dbeafe',cooldown:'#d1fae5'}[cat]||'#f1f5f9';
+  return {warmup:'#fef3c7',main:'#d1fae5',cooldown:'#e0f2fe'}[cat]||'#f1f5f9';
 }
 
 function trackingLabel(ex) {
@@ -298,6 +298,70 @@ function countWeekSessions(date) {
 }
 
 /* ──────────────────────────────────────────────────────────────
+   DIGITAL TWIN — fatigue / recovery helpers
+─────────────────────────────────────────────────────────────── */
+function calculateFatigueScore() {
+  const logs=getLogs().filter(l=>l.completedAll);
+  const today=new Date();
+  const weights=[1,.8,.5,.3,.15];
+  let load=0;
+  for(let i=0;i<5;i++){
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    const count=logs.filter(l=>l.date===isoDate(d)).length;
+    load+=count*weights[i];
+  }
+  return Math.min(100,Math.round(load*22));
+}
+
+function buildDigitalTwinPanel(sessionTypes, phase) {
+  const fatigueScore=calculateFatigueScore();
+  const recoveryScore=100-fatigueScore;
+  const label=recoveryScore>=75?'Optimal':recoveryScore>=50?'Good':recoveryScore>=25?'Fair':'High Load';
+  const color=recoveryScore>=75?'var(--primary)':recoveryScore>=50?'#38bdf8':recoveryScore>=25?'var(--warning)':'var(--danger)';
+  const hasKineto=sessionTypes.includes('kinetotherapy');
+  const hasStrength=sessionTypes.includes('strength');
+  const hasCardio=sessionTypes.includes('cardio');
+  const lumbarFill=hasKineto?'rgba(5,200,130,.4)':'rgba(255,255,255,.05)';
+  const coreFill=(hasKineto||hasStrength)?'rgba(5,200,130,.18)':'rgba(255,255,255,.04)';
+  const shoulderFill=hasStrength?'rgba(56,189,248,.3)':'rgba(255,255,255,.04)';
+  const legFill=hasCardio?'rgba(249,115,22,.25)':'rgba(255,255,255,.04)';
+  const vertebraeY=[39,46,53,60,67,74,81,88,95,102];
+  const svg=`<svg viewBox="0 0 100 200" class="dt-body-svg" aria-hidden="true">
+    <circle cx="50" cy="16" r="12" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>
+    <line x1="50" y1="28" x2="50" y2="36" stroke="rgba(255,255,255,.2)" stroke-width="2"/>
+    <ellipse cx="24" cy="52" rx="9" ry="7" fill="${shoulderFill}"/>
+    <ellipse cx="76" cy="52" rx="9" ry="7" fill="${shoulderFill}"/>
+    <path d="M28 45 Q50 36 72 45" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.5"/>
+    <path d="M30 47 L26 108 L36 120 L64 120 L74 108 L70 47" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/>
+    <rect x="33" y="64" width="34" height="28" rx="5" fill="${coreFill}"/>
+    <rect x="37" y="93" width="26" height="22" rx="4" fill="${lumbarFill}"/>
+    <path d="M36 120 L31 135 L47 137" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.5"/>
+    <path d="M64 120 L69 135 L53 137" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.5"/>
+    <rect x="34" y="137" width="12" height="45" rx="5" fill="${legFill}"/>
+    <rect x="54" y="137" width="12" height="45" rx="5" fill="${legFill}"/>
+    <path d="M30 50 L16 88 L20 90" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.5"/>
+    <path d="M70 50 L84 88 L80 90" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.5"/>
+    <line x1="50" y1="36" x2="50" y2="116" stroke="${color}" stroke-width="2.5" opacity=".6"/>
+    ${vertebraeY.map(y=>`<rect x="47" y="${y}" width="6" height="3.5" rx="1" fill="${color}" opacity=".88"/>`).join('')}
+  </svg>`;
+  const focusAreas=[];
+  if(hasKineto) focusAreas.push('Spine & Core');
+  if(hasStrength) focusAreas.push('Strength');
+  if(hasCardio) focusAreas.push('Cardio');
+  return `
+    <div class="dt-panel">
+      <div class="dt-body-wrap">${svg}</div>
+      <div class="dt-metrics">
+        <div class="dt-score-label">Recovery Score</div>
+        <div class="dt-score-value" style="color:${color}">${recoveryScore}</div>
+        <div class="dt-score-badge" style="color:${color};border-color:${color}">${label}</div>
+        <div class="dt-score-bar-wrap"><div class="dt-score-bar" style="width:${recoveryScore}%;background:${color}"></div></div>
+        ${focusAreas.length?`<div class="dt-focus-label">Today's Focus</div><div class="dt-focus-chips">${focusAreas.map(f=>`<span class="dt-focus-chip">${f}</span>`).join('')}</div>`:''}
+      </div>
+    </div>`;
+}
+
+/* ──────────────────────────────────────────────────────────────
    8. ROUTER
 ─────────────────────────────────────────────────────────────── */
 const Router={
@@ -381,7 +445,8 @@ function renderTodayView(){
     return buildSessionCard(sType,phase,strengthDay,done,idx,sessionTypes.length,phaseName,todayStr);
   }).join('');
 
-  cont.innerHTML=headerHTML+statsHTML+sessionCards;
+  const dtPanel=buildDigitalTwinPanel(sessionTypes,phase);
+  cont.innerHTML=headerHTML+dtPanel+statsHTML+sessionCards;
 
   cont.querySelectorAll('[data-start-session]').forEach(btn=>{
     btn.addEventListener('click',()=>{
@@ -1054,14 +1119,50 @@ function clearCardioTimers(){ clearInterval(WS.cardioHandle); WS.cardioHandle=nu
 function renderLibraryView(){
   if(!App.dataReady) return;
   const allExercises=[...App.kineto.exercises,...App.strength.exercises,...(App.cardio.breathingExercises||[])];
-  renderLibList(allExercises,'');
+
+  // Recommended Today section
   const filterBar=document.getElementById('lib-filters');
+  let recDiv=document.getElementById('lib-recommended');
+  if(!recDiv){
+    recDiv=document.createElement('div'); recDiv.id='lib-recommended';
+    filterBar?.parentNode.insertBefore(recDiv,filterBar);
+  }
+  const status=getProgramStatus();
+  if(!status.before&&!status.after){
+    const isRest=status.sessionTypes.includes('rest')||!status.sessionTypes.length;
+    if(!isRest){
+      const {phase,sessionTypes,strengthDay}=status;
+      const mainType=sessionTypes.find(t=>t!=='rest')||sessionTypes[0];
+      const recExercises=getSessionExercises(mainType,phase,strengthDay).slice(0,4);
+      const icons={warmup:'🔥',main:'⚡',cooldown:'🌊',breathing:'🌬️'};
+      recDiv.innerHTML=recExercises.length?`
+        <div class="lib-recommended-header">
+          <span class="lib-rec-title">Recommended Today</span>
+          <span class="lib-rec-sub">${capitalize(mainType)} · Phase ${phase}</span>
+        </div>
+        <div class="lib-preview-grid">
+          ${recExercises.map(ex=>{
+            const imgSrc=getExerciseImage(ex);
+            return `<div class="lib-preview-card" data-lib-rec="${ex.id}">
+              <div class="lib-preview-img">
+                <img src="${imgSrc}" data-exid="${ex.id}" alt="${ex.name}" onerror="this.style.display='none'" loading="lazy">
+                <span class="lib-preview-icon">${icons[ex.category]||'💪'}</span>
+              </div>
+              <div class="lib-preview-name">${ex.name.length>20?ex.name.slice(0,18)+'…':ex.name}</div>
+              <div class="lib-preview-meta">${trackingLabel(ex)}</div>
+            </div>`;
+          }).join('')}
+        </div>`:'';
+    } else { recDiv.innerHTML=''; }
+  } else { recDiv.innerHTML=''; }
+
+  renderLibList(allExercises,'');
   const filters=[
     {label:'All',val:''},{label:'Kineto',val:'kineto'},
     {label:'Strength',val:'strength'},{label:'Breathing',val:'breathing'},
     {label:'Warmup',val:'cat:warmup'},{label:'Main',val:'cat:main'},{label:'Cooldown',val:'cat:cooldown'},
   ];
-  filterBar.innerHTML=filters.map(f=>`<button class="filter-chip ${f.val===''?'active':''}" data-filter="${f.val}">${f.label}</button>`).join('');
+  if(filterBar) filterBar.innerHTML=filters.map(f=>`<button class="filter-chip ${f.val===''?'active':''}" data-filter="${f.val}">${f.label}</button>`).join('');
   let activeFilter='', searchQuery='';
   function applyFilter(){
     let list=allExercises;
@@ -1239,8 +1340,8 @@ function renderCharts(cont){
     ctx.strokeStyle=grid;ctx.lineWidth=1;
     for(let i=0;i<=4;i++){const y=pad.top+iH*(1-i/4);ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(W-pad.right,y);ctx.stroke();ctx.fillStyle=fg;ctx.font='10px sans-serif';ctx.textAlign='right';ctx.fillText(((min+(max-min)*i/4)).toFixed(1)+'kg',pad.left-4,y+4);}
     const pt=i=>({x:pad.left+(data.length>1?i/(data.length-1)*iW:iW/2),y:pad.top+iH*(1-(data[i].weight-min)/(max-min))});
-    ctx.strokeStyle='#2563eb';ctx.lineWidth=2;ctx.beginPath();data.forEach((_,i)=>{const p=pt(i);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.stroke();
-    ctx.fillStyle='#2563eb';data.forEach((_,i)=>{const p=pt(i);ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();});
+    ctx.strokeStyle='#059669';ctx.lineWidth=2;ctx.beginPath();data.forEach((_,i)=>{const p=pt(i);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.stroke();
+    ctx.fillStyle='#059669';data.forEach((_,i)=>{const p=pt(i);ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();});
     ctx.fillStyle=fg;ctx.textAlign='center';ctx.font='10px sans-serif';
     const step=Math.ceil(data.length/4);data.forEach((d,i)=>{if(i%step===0)ctx.fillText(d.date.slice(5),pt(i).x,H-8);});
   }
@@ -1466,8 +1567,7 @@ function applyTheme(theme){
 }
 function initTheme(){
   const stored=lsGet(LS.PREFS,{}).theme;
-  const prefer=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
-  applyTheme(stored||prefer);
+  applyTheme(stored||'dark');
 }
 
 /* ──────────────────────────────────────────────────────────────
