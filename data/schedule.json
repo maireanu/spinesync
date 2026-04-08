@@ -12,13 +12,13 @@
     { "week": 18, "from": 2, "to": 3 }
   ],
   "weeklyPattern": {
-    "1": "kinetotherapy",
-    "2": "strength",
-    "3": "kinetotherapy",
-    "4": "strength",
-    "5": "kinetotherapy",
-    "6": "kinetotherapy",
-    "0": "strength"
+    "0": ["strength"],
+    "1": ["kinetotherapy", "cardio"],
+    "2": ["strength"],
+    "3": ["kinetotherapy", "cardio"],
+    "4": ["strength"],
+    "5": ["kinetotherapy", "cardio"],
+    "6": ["kinetotherapy"]
   },
   "strengthDayOrder": [2, 4, 0],
   "strengthPatterns": [
