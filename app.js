@@ -1,6 +1,6 @@
 /* ════════════════════════════════════════════════════════════════
    SPINESYNC — app.js  v2
-   Dual sessions · wger.de images · Cardio player · Swipe nav
+   Dual sessions · free-exercise-db images · Cardio player · Swipe nav
    ════════════════════════════════════════════════════════════════ */
 'use strict';
 
@@ -13,7 +13,7 @@ const LS = {
   MILESTONES: 'ss_milestones',
   CUSTOM:     'ss_custom',
   PREFS:      'ss_prefs',
-  IMG_CACHE:  'ss_imgs_v2',
+  IMG_CACHE:  'ss_imgs_v3',
 };
 
 const App = {
@@ -200,45 +200,80 @@ async function loadData() {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   6. IMAGE CACHE (wger.de background fetch)
+   6. IMAGE CACHE (free-exercise-db via GitHub raw)
 ─────────────────────────────────────────────────────────────── */
-function getGifSearchTerm(ex) {
-  if(ex.gifSearch) return ex.gifSearch;
-  return ex.name
-    .replace(/\s*[—–-]\s*.*/g,'')
-    .replace(/\s*\(.*?\)/g,'')
-    .replace(/\bwith\b.*/i,'')
-    .replace(/[^a-zA-Z\s-]/g,'')
+const FREEDB_BASE = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/';
+const FREEDB_JSON = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json';
+
+function normaliseForMatch(str) {
+  return str
+    .toLowerCase()
+    .replace(/\s*[—–-]\s*.*/g, '')   // drop sub-titles after dash
+    .replace(/\s*\(.*?\)/g, '')       // drop parenthetical notes
+    .replace(/\bwith\b.*/i, '')       // drop "with …"
+    .replace(/[^a-z\s]/g, '')         // letters + spaces only
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
+function scoreMatch(query, candidate) {
+  // Returns 0-100: 100 = exact, higher = better
+  if (query === candidate) return 100;
+  const qWords = query.split(' ');
+  const cWords = candidate.split(' ');
+  const shared = qWords.filter(w => w.length > 2 && cWords.includes(w)).length;
+  return shared / Math.max(qWords.length, 1) * 80;
+}
+
 async function fetchExerciseImages() {
-  const CACHE_TTL=7*24*3600*1000;
-  const cached=lsGet(LS.IMG_CACHE,null);
-  if(cached&&Date.now()-cached.ts<CACHE_TTL){
-    App.imgCache=cached.data||{};
+  const CACHE_TTL = 7 * 24 * 3600 * 1000;
+  const cached = lsGet(LS.IMG_CACHE, null);
+  if (cached && Date.now() - cached.ts < CACHE_TTL) {
+    App.imgCache = cached.data || {};
     return;
   }
-  const toFetch=Object.values(App.exercises).filter(ex=>!ex.gifUrl&&ex.trackingType!=='breathing');
-  const imgMap={};
-  for(const ex of toFetch){
-    const term=getGifSearchTerm(ex);
-    if(!term||term.length<3) continue;
-    try {
-      const url='https://wger.de/api/v2/exercise/search/?term='+encodeURIComponent(term)+'&language=english&format=json';
-      const res=await fetch(url,{signal:AbortSignal.timeout(6000)});
-      if(!res.ok) continue;
-      const data=await res.json();
-      const hit=data.suggestions?.[0]?.data;
-      if(hit?.image){
-        imgMap[ex.id]=hit.image;
-        document.querySelectorAll('[data-exid="'+ex.id+'"]').forEach(img=>{img.src=hit.image;});
-      }
-    } catch {}
-    await new Promise(r=>setTimeout(r,80));
+
+  // Fetch the combined exercise list from free-exercise-db
+  let dbExercises = [];
+  try {
+    const res = await fetch(FREEDB_JSON, { signal: AbortSignal.timeout(15000) });
+    if (res.ok) dbExercises = await res.json();
+  } catch { /* network unavailable — skip silently */ }
+
+  if (!dbExercises.length) return;
+
+  // Build a normalised lookup: normalisedName → exercise id
+  const dbIndex = dbExercises.map(e => ({
+    id: e.id,
+    norm: normaliseForMatch(e.name),
+  }));
+
+  const toMatch = Object.values(App.exercises).filter(
+    ex => !ex.gifUrl && ex.trackingType !== 'breathing'
+  );
+  const imgMap = {};
+
+  for (const ex of toMatch) {
+    const query = normaliseForMatch(ex.gifSearch || ex.name);
+    if (!query || query.length < 3) continue;
+
+    let best = null, bestScore = 0;
+    for (const entry of dbIndex) {
+      const s = scoreMatch(query, entry.norm);
+      if (s > bestScore) { bestScore = s; best = entry; }
+    }
+
+    if (best && bestScore >= 30) {
+      const imgUrl = FREEDB_BASE + encodeURIComponent(best.id) + '/0.jpg';
+      imgMap[ex.id] = imgUrl;
+      document.querySelectorAll('[data-exid="' + ex.id + '"]').forEach(img => {
+        img.src = imgUrl;
+      });
+    }
   }
-  lsSet(LS.IMG_CACHE,{ts:Date.now(),data:imgMap});
-  App.imgCache=imgMap;
+
+  lsSet(LS.IMG_CACHE, { ts: Date.now(), data: imgMap });
+  App.imgCache = imgMap;
 }
 
 /* ──────────────────────────────────────────────────────────────
