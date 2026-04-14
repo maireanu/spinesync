@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="gl" x1="20" y1="5" x2="20" y2="41" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#44e2cd"/>
+      <stop offset="55%" stop-color="#5b9cf6"/>
+      <stop offset="100%" stop-color="#a589f8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sync arc: 270° clockwise sweep around the spine column -->
+  <!-- Center (20,23) radius 22 · from upper-left (4.44,7.44) to lower-left (4.44,38.56) -->
+  <path d="M 4.44 7.44 A 22 22 0 1 1 4.44 38.56"
+        stroke="url(#gl)" stroke-width="3" stroke-linecap="round" fill="none"/>
+
+  <!-- Arrowhead at arc end · tip at (4.44,38.56) pointing upper-left -->
+  <path d="M 5.73 43.39 L 4.44 38.56 L 9.27 39.85"
+        stroke="url(#gl)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- 5 vertebra discs · spine column centered at x=20 -->
+  <rect x="14" y="5"  width="12" height="4" rx="2" fill="url(#gl)"/>
+  <rect x="14" y="13" width="12" height="4" rx="2" fill="url(#gl)"/>
+  <rect x="14" y="21" width="12" height="4" rx="2" fill="url(#gl)"/>
+  <rect x="14" y="29" width="12" height="4" rx="2" fill="url(#gl)"/>
+  <rect x="14" y="37" width="12" height="4" rx="2" fill="url(#gl)"/>
+</svg>

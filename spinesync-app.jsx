@@ -2,6 +2,33 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { EXERCISES as DEFAULT_EXERCISES, SCHEDULE as DEFAULT_SCHEDULE } from "./exercises-data.js";
 
+// ─── LOGO ────────────────────────────────────────────────────────────────────
+function SpineSyncLogo({ size = 28 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="spinesync-lg" x1="20" y1="5" x2="20" y2="41" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#44e2cd"/>
+          <stop offset="55%" stopColor="#5b9cf6"/>
+          <stop offset="100%" stopColor="#a589f8"/>
+        </linearGradient>
+      </defs>
+      {/* Sync arc · 270° CW sweep around the spine */}
+      <path d="M 4.44 7.44 A 22 22 0 1 1 4.44 38.56"
+            stroke="url(#spinesync-lg)" strokeWidth="3" strokeLinecap="round"/>
+      {/* Arrowhead at arc end */}
+      <path d="M 5.73 43.39 L 4.44 38.56 L 9.27 39.85"
+            stroke="url(#spinesync-lg)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* 5 vertebra discs */}
+      <rect x="14" y="5"  width="12" height="4" rx="2" fill="url(#spinesync-lg)"/>
+      <rect x="14" y="13" width="12" height="4" rx="2" fill="url(#spinesync-lg)"/>
+      <rect x="14" y="21" width="12" height="4" rx="2" fill="url(#spinesync-lg)"/>
+      <rect x="14" y="29" width="12" height="4" rx="2" fill="url(#spinesync-lg)"/>
+      <rect x="14" y="37" width="12" height="4" rx="2" fill="url(#spinesync-lg)"/>
+    </svg>
+  );
+}
+
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const FULL_DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
@@ -1022,7 +1049,7 @@ export default function App() {
       <div style={{ padding:"14px 18px 12px",background:"rgba(11,13,30,0.6)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",position:"sticky",top:0,zIndex:50,boxShadow:"0px 24px 48px rgba(0,0,0,0.4)",outline:"1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ maxWidth:660,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
           <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-            <span style={{ fontSize:22,color:"#5b9cf6" }}>⬡</span>
+            <SpineSyncLogo size={30} />
             <div>
               <div style={{ fontWeight:900,fontSize:17,color:"#dfe1f9",lineHeight:1,letterSpacing:"-0.02em" }}>SpineSync</div>
               <div style={{ fontSize:10,color:"#414752",marginTop:2,letterSpacing:"0.08em" }}>PHYSICAL THERAPY & EXERCISE</div>
