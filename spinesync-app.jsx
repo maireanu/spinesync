@@ -291,6 +291,53 @@ function buildSessionPattern(schedule) {
     .map(day => ({ dayKey: day, dayLabel: FULL_DAYS[DAYS.indexOf(day)], groups: schedule[day] }));
 }
 
+// ─── WORKOUT TIMERS ───────────────────────────────────────────────────────────
+function formatElapsed(ms) {
+  if (ms < 0) ms = 0;
+  const totalSecs = Math.floor(ms / 1000);
+  const h = Math.floor(totalSecs / 3600);
+  const m = Math.floor((totalSecs % 3600) / 60);
+  const s = totalSecs % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function useElapsed(startedAt, endedAt) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (!startedAt || endedAt) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [startedAt, endedAt]);
+  if (!startedAt) return null;
+  return (endedAt ? new Date(endedAt).getTime() : now) - new Date(startedAt).getTime();
+}
+
+function SessionTimer({ startedAt, endedAt }) {
+  const elapsed = useElapsed(startedAt, endedAt);
+  if (elapsed === null) return null;
+  const running = !!startedAt && !endedAt;
+  return (
+    <div style={{ display:"flex",alignItems:"center",gap:10,background:"#1f2235",border:`1px solid ${running?"rgba(68,226,205,0.25)":"rgba(251,191,36,0.2)"}`,borderRadius:14,padding:"11px 16px",marginBottom:22 }}>
+      <div style={{ width:8,height:8,borderRadius:"50%",background:running?"#44e2cd":"#fbbf24",flexShrink:0,...(running?{animation:"spinePulse 1.5s ease-in-out infinite"}:{}) }} />
+      <span style={{ fontSize:11,color:"#5a5f7a",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase" }}>Session Time</span>
+      <span style={{ flex:1,textAlign:"right",fontVariantNumeric:"tabular-nums",fontSize:22,fontWeight:900,color:running?"#44e2cd":"#fbbf24",letterSpacing:"0.04em" }}>{formatElapsed(elapsed)}</span>
+      {!running && <span style={{ fontSize:11,color:"#fbbf24",fontWeight:700 }}>DONE ✓</span>}
+    </div>
+  );
+}
+
+function GroupTimerBadge({ startedAt, endedAt }) {
+  const elapsed = useElapsed(startedAt, endedAt);
+  if (elapsed === null) return null;
+  const running = !!startedAt && !endedAt;
+  return (
+    <span style={{ fontSize:11,fontVariantNumeric:"tabular-nums",fontWeight:700,color:running?"#44e2cd":"#fbbf2488",background:running?"rgba(68,226,205,0.08)":"rgba(251,191,36,0.06)",border:`1px solid ${running?"rgba(68,226,205,0.2)":"rgba(251,191,36,0.15)"}`,borderRadius:6,padding:"2px 8px",flexShrink:0 }}>
+      ⏱ {formatElapsed(elapsed)}
+    </span>
+  );
+}
+
 // ─── TODAY VIEW ───────────────────────────────────────────────────────────────
 function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
   const tISO = todayISO();
@@ -313,9 +360,55 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
   const [detail, setDetail] = useState(null);
   const [collapsed, setCollapsed] = useState({});
   const [showTimer, setShowTimer] = useState(false);
+  const [timers, setTimers] = useState(() => {
+    try { const s = localStorage.getItem(`pt_timers_${tISO}`); return s ? JSON.parse(s) : {}; } catch { return {}; }
+  });
   useEffect(() => {
     try { localStorage.setItem(`pt_sets_${tISO}`, JSON.stringify(setsLog)); } catch {}
   }, [setsLog, tISO]);
+  useEffect(() => {
+    try { localStorage.setItem(`pt_timers_${tISO}`, JSON.stringify(timers)); } catch {}
+  }, [timers, tISO]);
+
+  // Auto-start / auto-stop timers whenever set counts change
+  useEffect(() => {
+    const now = new Date().toISOString();
+    setTimers(prev => {
+      let next = { ...prev };
+      let changed = false;
+      // Session timer: start on first set
+      if (doneSets > 0 && !prev.session?.startedAt) {
+        next = { ...next, session: { startedAt: now, endedAt: null } };
+        changed = true;
+      }
+      // Group timers
+      const updatedGroups = { ...(next.groups || {}) };
+      groups.forEach(g => {
+        const hasAnySets = g.exercises.some((_, i) => (setsLog[`${g.id}_${i}`] || 0) > 0);
+        const gTimer = updatedGroups[g.id];
+        if (hasAnySets && !gTimer?.startedAt) {
+          updatedGroups[g.id] = { startedAt: now, endedAt: null };
+          changed = true;
+        }
+        const groupAllDone = g.exercises.every((_, i) => {
+          const ex = getExerciseById(exercises, g.exercises[i].exerciseId);
+          return (setsLog[`${g.id}_${i}`] || 0) >= parseSets(ex?.duration || "1");
+        });
+        if (groupAllDone && updatedGroups[g.id]?.startedAt && !updatedGroups[g.id]?.endedAt) {
+          updatedGroups[g.id] = { ...updatedGroups[g.id], endedAt: now };
+          changed = true;
+        }
+        // Re-open group timer if user undoes a set that made the group complete
+        if (!groupAllDone && updatedGroups[g.id]?.endedAt) {
+          updatedGroups[g.id] = { ...updatedGroups[g.id], endedAt: null };
+          changed = true;
+        }
+      });
+      if (changed) return { ...next, groups: updatedGroups };
+      return prev;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setsLog]);
 
   const totalSets = groups.reduce((s,g) => s + g.exercises.reduce((a,slot) => {
     const ex = getExerciseById(exercises, slot.exerciseId);
@@ -354,6 +447,11 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
 
   // Mark session complete
   const markDayDone = () => {
+    const now = new Date().toISOString();
+    setTimers(prev => ({
+      ...prev,
+      session: prev.session ? { ...prev.session, endedAt: prev.session.endedAt || now } : { startedAt: now, endedAt: now }
+    }));
     const exerciseDetails = groups.flatMap(g =>
       g.exercises.map((slot, i) => {
         const ex = getExerciseById(exercises, slot.exerciseId);
@@ -372,6 +470,7 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
   };
   const resetToday = () => {
     setSetsLog({});
+    setTimers({});
     setWorkoutLog(prev => (prev||[]).filter(l => l.date !== tISO));
   };
 
@@ -418,6 +517,9 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
         </div>
       )}
 
+      {/* Session timer */}
+      <SessionTimer startedAt={timers.session?.startedAt} endedAt={timers.session?.endedAt} />
+
       {/* No session — schedule is empty */}
       {groups.length === 0 && (
         <div style={{ background:"#26293b",borderRadius:18,padding:40,textAlign:"center",outline:"1px solid rgba(255,255,255,0.05)" }}>
@@ -450,6 +552,7 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
                 </div>
               </div>
               {/* dot indicators */}
+              <GroupTimerBadge startedAt={timers.groups?.[group.id]?.startedAt} endedAt={timers.groups?.[group.id]?.endedAt} />
               <div style={{ display:"flex",gap:4 }}>
                 {group.exercises.map((_,i)=>{
                   const ex=getExerciseById(exercises,group.exercises[i].exerciseId);
