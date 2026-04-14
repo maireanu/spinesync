@@ -229,7 +229,19 @@ function ExerciseDetailModal({ ex, category, open, onClose }) {
         <div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>{ex.muscles.map(m=><Badge key={m} color="#9399b8">{m}</Badge>)}</div>
       </div>
       <div style={{ marginBottom: ex.notes ? 16 : 0 }}>
-        <div style={LBL}>💡 How To</div>
+        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6 }}>
+          <div style={LBL}>💡 How To</div>
+          <a
+            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name + ' exercise how to')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display:"inline-flex",alignItems:"center",gap:5,fontSize:12,fontWeight:600,color:"#f87171",textDecoration:"none",background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.25)",borderRadius:20,padding:"3px 10px",transition:"background 0.2s" }}
+            onMouseOver={e=>e.currentTarget.style.background="rgba(248,113,113,0.22)"}
+            onMouseOut={e=>e.currentTarget.style.background="rgba(248,113,113,0.1)"}
+          >
+            ▶ Watch on YouTube
+          </a>
+        </div>
         <div style={{ background:"#1a1d2e",borderRadius:10,padding:"13px 15px",color:"#c4c8e8",fontSize:14,lineHeight:1.75,borderLeft:`3px solid ${meta.color}` }}>{ex.tips}</div>
       </div>
       {ex.notes && (

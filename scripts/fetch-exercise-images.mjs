@@ -1,21 +1,16 @@
 #!/usr/bin/env node
 // scripts/fetch-exercise-images.mjs
 //
-// One-time setup: queries the ExerciseDB API (free tier on RapidAPI) by exercise
-// name and writes GIF URLs back to exercise-images.js.
+// Matches exercises to images from the free yuhonas/free-exercise-db dataset
+// (https://github.com/yuhonas/free-exercise-db) and writes URLs to exercise-images.js.
+//
+// No API key required — downloads the full dataset once (~2MB) and does local matching.
 //
 // USAGE:
-//   node scripts/fetch-exercise-images.mjs YOUR_RAPIDAPI_KEY
+//   node scripts/fetch-exercise-images.mjs
 //
-// HOW TO GET A FREE API KEY (500 req/month, no credit card):
-//   1. Sign up at https://rapidapi.com
-//   2. Go to https://rapidapi.com/justin-WFnsXH_t6/api/exercisedb
-//   3. Click "Subscribe to Test" → choose BASIC (free)
-//   4. Copy your key from the Code Snippets panel
-//
-// This script uses ~35 API requests (one per exercise that has a search term).
-// It skips exercises that already have a URL in exercise-images.js.
-// Re-run any time to fill gaps or refresh URLs.
+// The script skips exercises that already have a URL saved, so re-running is safe.
+// To manually add or override a URL, just edit exercise-images.js directly.
 
 import { writeFileSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -23,7 +18,10 @@ import { dirname, resolve } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const IMAGES_FILE = resolve(__dirname, "../exercise-images.js");
-const BASE_URL = "https://exercisedb.p.rapidapi.com";
+
+// yuhonas/free-exercise-db — completely free, no auth, ~870 exercises with JPG images
+const DB_JSON = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json";
+const IMG_BASE = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises";
 
 // ─── Name → ExerciseDB search term ───────────────────────────────────────────
 // null  = no equivalent in ExerciseDB (breathing protocols, stick exercises, etc.)
@@ -31,29 +29,29 @@ const BASE_URL = "https://exercisedb.p.rapidapi.com";
 const SEARCH_TERMS = {
   // ── Kinetotherapy ──────────────────────────────────────────────────────────
   kw1: null,                         // Diaphragmatic Breathing (no GIF)
-  kw2: "thoracic rotation",          // Seated Thoracic Rotation
-  k01: "cat cow",                    // Cat-Cow + Neutral Hold
+  kw2: "cable internal rotation",     // Seated Thoracic Rotation
+  k01: "cat stretch",                // Cat-Cow + Neutral Hold
   k02: null,                         // Towel Roll (no equivalent)
-  k03: "bird dog",                   // Bird-Dog
+  k03: "hyperextensions back extensions", // Bird-Dog
   k04: "dead bug",                   // Dead Bug
-  k05: "cobra",                      // Prone Cobra
-  k06: "wall angel",                 // Wall Angels
+  k05: "hyperextensions back",       // Prone Cobra
+  k06: null,                         // Wall Angels (no dataset match)
   k07: "hip flexor stretch",         // Hip Flexor Stretch — Kneeling
-  k08: "doorway chest stretch",      // Pectoral Doorway Stretch
-  k09: "push up plus",               // Serratus Anterior Wall Push-Up Plus
-  k10: "foam roller",                // Foam Roller Thoracic
+  k08: "behind head chest stretch",  // Pectoral Doorway Stretch
+  k09: null,                         // Serratus Anterior Wall Push-Up Plus (no dataset match)
+  k10: null,                         // Foam Roller (no dataset match)
   kc1: "child",                      // Child's Pose
   kc2: "knee to chest",              // Supine Knee-to-Chest
   kc3: null,                         // Postural Reset (no equivalent)
   k11: "superman",                   // Superman / Back Extension
   k12: "glute bridge",               // Glute Bridge
-  k13: "clamshell",                  // Side-Lying Clamshell
-  k14: "chin tuck",                  // Chin Tucks
+  k13: "external rotation",          // Side-Lying Clamshell
+  k14: null,                         // Chin Tucks (no dataset match)
   k15: "y raise",                    // Prone Y-T-W Raises
-  k16: "thoracic rotation",          // Half-Kneeling Thoracic Rotation
+  k16: "cable internal rotation",    // Half-Kneeling Thoracic Rotation
   k17: "single leg glute bridge",    // Single-Leg Glute Bridge
   k18: "side plank",                 // Modified Side Plank
-  k19: "bird dog",                   // Bird-Dog + Resistance Band
+  k19: "hyperextensions back extensions", // Bird-Dog + Resistance Band
   k20: "seated row",                 // Seated Rowing with Stick
   k21: null,                         // Single-Leg Balance (no GIF)
   k22: null,                         // Schroth RAB Breathing (no GIF)
@@ -69,12 +67,12 @@ const SEARCH_TERMS = {
   sa7: "push up",                    // Scapular Push-Up Isolation
   sa8: "wide push up",               // Archer Push-Up
   sa9: "close grip push up",         // Slow-Tempo / Diamond Push-Up
-  sa10: "dumbbell chest press",      // Single-Arm Floor Press
+  sa10: "one arm dumbbell bench press", // Single-Arm Floor Press
 
   // ── Strength — Day B Pull ──────────────────────────────────────────────────
   sb1: "dumbbell one arm row",       // One-Arm Dumbbell Row
   sb2: "dumbbell bicep curl",        // Bicep Curl
-  sb3: "dumbbell reverse fly",       // Dumbbell Reverse Fly
+  sb3: "reverse fly",                // Dumbbell Reverse Fly
   sb4: "face pull",                  // Face Pull
   sb5: null,                         // Stick Pull-Apart (no equivalent)
   sb6: "hammer curl",                // Hammer Curl
@@ -87,12 +85,12 @@ const SEARCH_TERMS = {
   sc1: "goblet squat",               // Goblet Squat
   sc2: "romanian deadlift",          // Romanian Deadlift — Light
   sc3: "reverse lunge",              // Reverse Lunge
-  sc4: "sumo squat",                 // Stick-Assisted Sumo Squat
+  sc4: "wide stance barbell squat",  // Stick-Assisted Sumo Squat
   sc5: "plank",                      // Plank
   sc5b: "pallof press",              // Pallof Press
   sc6: "glute bridge",               // Glute Bridge — Loaded
   sc7: "walking lunge",              // Walking Lunge with Stick Overhead
-  sc8: "bulgarian split squat",      // Bulgarian Split Squat
+  sc8: "split squat with dumbbells", // Bulgarian Split Squat
   sc9: "romanian deadlift",          // Romanian Deadlift — Heavier
 
   // ── Cardio / Breathing ─────────────────────────────────────────────────────
@@ -108,21 +106,19 @@ const SEARCH_TERMS = {
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-async function searchExercise(name, apiKey) {
-  const encoded = encodeURIComponent(name.toLowerCase());
-  const url = `${BASE_URL}/exercises/name/${encoded}?limit=3&offset=0`;
-  const res = await fetch(url, {
-    headers: {
-      "x-rapidapi-host": "exercisedb.p.rapidapi.com",
-      "x-rapidapi-key": apiKey,
-    },
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`HTTP ${res.status}: ${text.slice(0, 120)}`);
-  }
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
+
+/** Find the best matching exercise from the dataset by name. */
+function findBest(searchTerm, allExercises) {
+  const term = searchTerm.toLowerCase();
+  const words = term.split(/\s+/);
+  // Exact substring match first
+  const exact = allExercises.find(e => e.name.toLowerCase().includes(term));
+  if (exact) return exact;
+  // All words present
+  return allExercises.find(e => {
+    const n = e.name.toLowerCase();
+    return words.every(w => n.includes(w));
+  }) ?? null;
 }
 
 function parseExistingImages(fileContent) {
@@ -147,12 +143,12 @@ function buildFileContent(imageMap) {
     .map(([k, v]) => `  "${k}": "${v}"`)
     .join(",\n");
   return `// Auto-generated by scripts/fetch-exercise-images.mjs
-// To refresh: node scripts/fetch-exercise-images.mjs YOUR_RAPIDAPI_KEY
+// To refresh: node scripts/fetch-exercise-images.mjs
 //
 // You can manually add or override any URL here:
-//   "k03": "https://v2.exercisedb.io/image/...",       ← ExerciseDB GIF
-//   "k03": "https://www.youtube.com/watch?v=...",       ← YouTube embed
-//   "k03": "https://example.com/clip.mp4",              ← direct video
+//   "k03": "https://example.com/exercise.jpg",          ← image/gif
+//   "k03": "https://www.youtube.com/watch?v=...",        ← YouTube embed
+//   "k03": "https://example.com/clip.mp4",               ← direct video
 //
 // Supported types (auto-detected by the app):
 //   • Any image/gif URL              → <img>
@@ -166,82 +162,68 @@ ${entries}
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-const apiKey = process.argv[2];
-if (!apiKey) {
-  console.error(
-    "\n  Usage: node scripts/fetch-exercise-images.mjs YOUR_RAPIDAPI_KEY\n\n" +
-    "  Get a free key (500 req/month):\n" +
-    "    1. Sign up at https://rapidapi.com\n" +
-    "    2. Go to https://rapidapi.com/justin-WFnsXH_t6/api/exercisedb\n" +
-    "    3. Subscribe to the BASIC (free) plan\n" +
-    "    4. Copy your key from the Code Snippets panel\n"
-  );
-  process.exit(1);
-}
 
-// Load existing URLs to avoid burning API requests on already-resolved exercises
+// Load existing URLs to avoid overwriting manually-set entries
 let existing = {};
 try {
   const fileContent = readFileSync(IMAGES_FILE, "utf8");
   existing = parseExistingImages(fileContent);
 } catch {}
 
-const toFetch = Object.entries(SEARCH_TERMS).filter(
+const toMatch = Object.entries(SEARCH_TERMS).filter(
   ([id, term]) => term !== null && !existing[id]
 );
-
-const skipped  = Object.keys(SEARCH_TERMS).filter(id => SEARCH_TERMS[id] === null);
+const skipped     = Object.keys(SEARCH_TERMS).filter(id => SEARCH_TERMS[id] === null);
 const alreadyDone = Object.keys(SEARCH_TERMS).filter(
   id => SEARCH_TERMS[id] !== null && existing[id]
 );
 
-console.log(`\n  ExerciseDB image fetcher`);
-console.log(`  ──────────────────────────────`);
+console.log(`\n  yuhonas/free-exercise-db image matcher`);
+console.log(`  ──────────────────────────────────────`);
 console.log(`  Already resolved : ${alreadyDone.length}`);
 console.log(`  Skipped (no term): ${skipped.length}`);
-console.log(`  To fetch         : ${toFetch.length}\n`);
+console.log(`  To match         : ${toMatch.length}\n`);
 
-if (toFetch.length === 0) {
+if (toMatch.length === 0) {
   console.log("  Nothing to do. All exercises already have URLs. ✅\n");
   process.exit(0);
 }
 
+// Download the full dataset once (no auth required)
+console.log("  Downloading exercise dataset…");
+const res = await fetch(DB_JSON);
+if (!res.ok) throw new Error(`Failed to fetch dataset: HTTP ${res.status}`);
+const allExercises = await res.json();
+console.log(`  Loaded ${allExercises.length} exercises from dataset.\n`);
+
 const imageMap = { ...existing };
-const found = [];
+const found  = [];
 const missed = [];
 
-for (const [id, searchTerm] of toFetch) {
-  process.stdout.write(`  [${id}] searching "${searchTerm}" … `);
-  try {
-    const results = await searchExercise(searchTerm, apiKey);
-    if (results.length > 0) {
-      // Pick the first result; prefer exact name match if available
-      const best = results.find(r => r.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                ?? results[0];
-      imageMap[id] = best.gifUrl;
-      found.push({ id, name: best.name, url: best.gifUrl });
-      console.log(`✅ "${best.name}"`);
-    } else {
-      missed.push({ id, searchTerm });
-      console.log("⚠️  no results");
-    }
-  } catch (err) {
-    missed.push({ id, searchTerm, error: err.message });
-    console.log(`❌ ${err.message}`);
+for (const [id, searchTerm] of toMatch) {
+  process.stdout.write(`  [${id}] matching "${searchTerm}" … `);
+  const match = findBest(searchTerm, allExercises);
+  if (match) {
+    imageMap[id] = `${IMG_BASE}/${match.id}/0.jpg`;
+    found.push({ id, name: match.name, url: imageMap[id] });
+    console.log(`✅ "${match.name}"`);
+  } else {
+    missed.push({ id, searchTerm });
+    console.log("⚠️  no match");
   }
-  // Be polite — ExerciseDB free tier has no explicit rate limit but 500 req/month
-  await new Promise(r => setTimeout(r, 250));
 }
 
 // Write updated file
 writeFileSync(IMAGES_FILE, buildFileContent(imageMap), "utf8");
 
-console.log(`\n  ──────────────────────────────`);
-console.log(`  Found   : ${found.length}`);
+console.log(`\n  ──────────────────────────────────────`);
+console.log(`  Matched : ${found.length}`);
 console.log(`  Missed  : ${missed.length}`);
 if (missed.length > 0) {
   console.log(`\n  Missed exercises (add URLs manually to exercise-images.js):`);
   missed.forEach(m => console.log(`    "${m.id}"  (searched: "${m.searchTerm}")`));
 }
-console.log(`\n  Updated ${IMAGES_FILE}\n`);
-console.log("  Restart the dev server to see the images: npm run dev\n");
+console.log(`\n  Updated ${IMAGES_FILE}`);
+console.log(`  Restart the dev server to see the images: npm run dev\n`);
+console.log(`  Tip: for missed exercises, add a YouTube URL manually:`);
+console.log(`    "k02": "https://www.youtube.com/watch?v=XXXXX"\n`);
