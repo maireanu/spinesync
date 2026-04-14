@@ -479,13 +479,17 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
                         <div style={{ flex:1,minWidth:0 }}>
                           <div style={{ display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:5 }}>
                             <span style={{ fontSize:15 }}>{meta.icon}</span>
-                            <span style={{ fontWeight:800,color:"#dfe1f9",fontSize:14,cursor:"pointer",textDecoration:isDone?"line-through":"none" }} onClick={()=>setDetail({ex,category:slot.category})}>{ex.name}</span>
+                            <span style={{ fontWeight:800,color:"#dfe1f9",fontSize:14,textDecoration:isDone?"line-through":"none" }}>{ex.name}</span>
+                            <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name + ' exercise how to')}`} target="_blank" rel="noopener noreferrer"
+                              style={{ display:"inline-flex",alignItems:"center",gap:3,fontSize:10,fontWeight:700,color:"#f87171",textDecoration:"none",background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.2)",borderRadius:20,padding:"2px 8px",flexShrink:0 }}>
+                              ▶ YT
+                            </a>
                           </div>
                           <div style={{ display:"flex",gap:5,flexWrap:"wrap",marginBottom:6 }}>
                             <Badge color={meta.color} small>{ex.duration}</Badge>
                             <WeightBadge weight={ex.weight} weightUnit={ex.weightUnit} />
                           </div>
-                          <div style={{ fontSize:11,color:"#3a3d5a",marginBottom:8 }}>{ex.muscles.join(" · ")}</div>
+                          <div style={{ fontSize:11,color:"#7a7f9a",marginBottom:8 }}>{ex.muscles.join(" · ")}</div>
                           <div style={{ background:"rgba(11,13,30,0.6)",borderRadius:10,padding:"10px 12px",fontSize:12,color:"#8b919d",lineHeight:1.7,borderLeft:`2px solid ${meta.color}55` }}>💡 {ex.tips}</div>
                         </div>
                       </div>
