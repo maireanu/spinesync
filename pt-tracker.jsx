@@ -289,6 +289,10 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
     const key=`${gid}_${idx}`;
     setSetsLog(s=>({...s,[key]:Math.max(0,(s[key]||0)-1)}));
   };
+  const resetExercise = (gid,idx) => {
+    const key=`${gid}_${idx}`;
+    setSetsLog(s=>({...s,[key]:0}));
+  };
 
   // Mark day complete
   const markDayDone = () => {
@@ -426,9 +430,10 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
                             <div key={si} style={{ width:10,height:10,borderRadius:"50%",background:si<doneS?group.color:"#252848",border:`1px solid ${si<doneS?group.color:"#303358"}`,transition:"background 0.2s",cursor:"pointer" }} onClick={()=>{ if(si<doneS) removeSet(group.id,idx); else addSet(group.id,idx,ex); }} />
                           ))}
                         </div>
-                        <button onClick={()=>addSet(group.id,idx,ex)} disabled={isDone} style={{ background:isDone?"#252848":group.color,border:"none",borderRadius:9,color:isDone?"#3a3d5a":"#fff",padding:"6px 14px",cursor:isDone?"default":"pointer",fontWeight:800,fontSize:13,transition:"all 0.2s" }}>
-                          {isDone ? "✓ Done" : `+Set ${doneS+1}`}
-                        </button>
+                        {isDone
+                          ? <button onClick={()=>resetExercise(group.id,idx)} style={{ background:"#1c1f3a",border:"1px solid #f97b4f44",borderRadius:9,color:"#f97b4f",padding:"6px 14px",cursor:"pointer",fontWeight:800,fontSize:13,transition:"all 0.2s" }}>↩ Undo</button>
+                          : <button onClick={()=>addSet(group.id,idx,ex)} style={{ background:group.color,border:"none",borderRadius:9,color:"#fff",padding:"6px 14px",cursor:"pointer",fontWeight:800,fontSize:13,transition:"all 0.2s" }}>{`+Set ${doneS+1}`}</button>
+                        }
                       </div>
                     </div>
                   );
