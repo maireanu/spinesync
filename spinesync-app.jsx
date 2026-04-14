@@ -370,42 +370,49 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
     try { localStorage.setItem(`pt_timers_${tISO}`, JSON.stringify(timers)); } catch {}
   }, [timers, tISO]);
 
-  // Auto-start / auto-stop timers whenever set counts change
+  // Explicit start functions — timers never auto-start from set counts
+  const startSession = () => {
+    const now = new Date().toISOString();
+    setTimers(prev => prev.session?.startedAt ? prev : { ...prev, session: { startedAt: now, endedAt: null } });
+  };
+  const startGroup = (gid) => {
+    const now = new Date().toISOString();
+    setTimers(prev => {
+      const session = prev.session?.startedAt ? prev.session : { startedAt: now, endedAt: null };
+      const updatedGroups = { ...(prev.groups || {}), [gid]: { startedAt: now, endedAt: null } };
+      return { ...prev, session, groups: updatedGroups };
+    });
+  };
+
+  // Auto-stop a group when all its sets are done; auto-open the next group; re-open if undone
   useEffect(() => {
     const now = new Date().toISOString();
     setTimers(prev => {
-      let next = { ...prev };
+      const updatedGroups = { ...(prev.groups || {}) };
       let changed = false;
-      // Session timer: start on first set
-      if (doneSets > 0 && !prev.session?.startedAt) {
-        next = { ...next, session: { startedAt: now, endedAt: null } };
-        changed = true;
-      }
-      // Group timers
-      const updatedGroups = { ...(next.groups || {}) };
-      groups.forEach(g => {
-        const hasAnySets = g.exercises.some((_, i) => (setsLog[`${g.id}_${i}`] || 0) > 0);
-        const gTimer = updatedGroups[g.id];
-        if (hasAnySets && !gTimer?.startedAt) {
-          updatedGroups[g.id] = { startedAt: now, endedAt: null };
-          changed = true;
-        }
+      groups.forEach((g, gIdx) => {
+        if (!updatedGroups[g.id]?.startedAt) return; // only track groups that were started
         const groupAllDone = g.exercises.every((_, i) => {
           const ex = getExerciseById(exercises, g.exercises[i].exerciseId);
           return (setsLog[`${g.id}_${i}`] || 0) >= parseSets(ex?.duration || "1");
         });
-        if (groupAllDone && updatedGroups[g.id]?.startedAt && !updatedGroups[g.id]?.endedAt) {
+        if (groupAllDone && !updatedGroups[g.id]?.endedAt) {
           updatedGroups[g.id] = { ...updatedGroups[g.id], endedAt: now };
           changed = true;
+          // Auto-start the next group if it hasn't been started yet
+          const nextGroup = groups[gIdx + 1];
+          if (nextGroup && !updatedGroups[nextGroup.id]?.startedAt) {
+            updatedGroups[nextGroup.id] = { startedAt: now, endedAt: null };
+            changed = true;
+          }
         }
-        // Re-open group timer if user undoes a set that made the group complete
+        // Re-open if user undoes a set that made the group complete
         if (!groupAllDone && updatedGroups[g.id]?.endedAt) {
           updatedGroups[g.id] = { ...updatedGroups[g.id], endedAt: null };
           changed = true;
         }
       });
-      if (changed) return { ...next, groups: updatedGroups };
-      return prev;
+      return changed ? { ...prev, groups: updatedGroups } : prev;
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setsLog]);
@@ -517,8 +524,22 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
         </div>
       )}
 
-      {/* Session timer */}
-      <SessionTimer startedAt={timers.session?.startedAt} endedAt={timers.session?.endedAt} />
+      {/* Session timer / Start Workout button */}
+      {groups.length > 0 && !log && (
+        timers.session?.startedAt
+          ? <SessionTimer startedAt={timers.session.startedAt} endedAt={timers.session.endedAt} />
+          : <button onClick={startSession} style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:10,width:"100%",background:"linear-gradient(135deg,#1a2e1a,#1a1d2e)",border:"1px solid rgba(68,226,205,0.35)",borderRadius:14,padding:"14px 20px",cursor:"pointer",marginBottom:22,transition:"all 0.2s" }}
+              onMouseOver={e=>e.currentTarget.style.background="linear-gradient(135deg,#1e3a1e,#1e2140)"}
+              onMouseOut={e=>e.currentTarget.style.background="linear-gradient(135deg,#1a2e1a,#1a1d2e)"}
+            >
+              <div style={{ width:34,height:34,borderRadius:"50%",background:"#44e2cd22",border:"1.5px solid #44e2cd55",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14 }}>▶</div>
+              <div style={{ textAlign:"left" }}>
+                <div style={{ color:"#44e2cd",fontWeight:900,fontSize:15 }}>Start Workout</div>
+                <div style={{ color:"#3a5a40",fontSize:12,marginTop:1 }}>Tap to begin session timer</div>
+              </div>
+            </button>
+      )}
+      {log && <SessionTimer startedAt={timers.session?.startedAt} endedAt={timers.session?.endedAt} />}
 
       {/* No session — schedule is empty */}
       {groups.length === 0 && (
@@ -551,8 +572,16 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
                   {group.exercises.filter((_,i)=>isExDone(group.id,i,getExerciseById(exercises,group.exercises[i].exerciseId))).length}/{group.exercises.length} exercises
                 </div>
               </div>
-              {/* dot indicators */}
-              <GroupTimerBadge startedAt={timers.groups?.[group.id]?.startedAt} endedAt={timers.groups?.[group.id]?.endedAt} />
+              {/* group timer or start button */}
+              {timers.groups?.[group.id]?.startedAt
+                ? <GroupTimerBadge startedAt={timers.groups[group.id].startedAt} endedAt={timers.groups[group.id].endedAt} />
+                : !allDone && (
+                  <button onClick={e=>{ e.stopPropagation(); startGroup(group.id); }}
+                    style={{ background:"rgba(68,226,205,0.1)",border:"1px solid rgba(68,226,205,0.3)",borderRadius:8,color:"#44e2cd",padding:"4px 12px",cursor:"pointer",fontSize:12,fontWeight:800,flexShrink:0,display:"flex",alignItems:"center",gap:4 }}>
+                    ▶ Start
+                  </button>
+                )
+              }
               <div style={{ display:"flex",gap:4 }}>
                 {group.exercises.map((_,i)=>{
                   const ex=getExerciseById(exercises,group.exercises[i].exerciseId);
