@@ -242,11 +242,30 @@ function ExerciseDetailModal({ ex, category, open, onClose }) {
   );
 }
 
+// ─── SESSION QUEUE ────────────────────────────────────────────────────────────
+// Builds the ordered, repeating list of workout sessions from the weekly pattern.
+// Rest days (days with no groups) are skipped — they are natural recovery gaps in
+// the cycle, not scheduled sessions.
+function buildSessionPattern(schedule) {
+  return DAYS
+    .filter(day => (schedule[day] || []).length > 0)
+    .map(day => ({ dayKey: day, dayLabel: FULL_DAYS[DAYS.indexOf(day)], groups: schedule[day] }));
+}
+
 // ─── TODAY VIEW ───────────────────────────────────────────────────────────────
 function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
-  const tKey = todayKey();
   const tISO = todayISO();
-  const groups = schedule[tKey] || [];
+
+  // Build the ordered session pattern from the weekly schedule
+  const sessionPattern = buildSessionPattern(schedule);
+  const completedCount = (workoutLog || []).length;
+
+  // Current session = next uncompleted in the cycle (wraps after full cycle)
+  const currentSession = sessionPattern.length > 0
+    ? sessionPattern[completedCount % sessionPattern.length]
+    : null;
+  const sessionNumber = completedCount + 1;
+  const groups = currentSession ? currentSession.groups : [];
 
   // setsLog persisted in localStorage keyed by date – survives navigation and refresh
   const [setsLog, setSetsLog] = useState(() => {
@@ -294,7 +313,7 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
     setSetsLog(s=>({...s,[key]:0}));
   };
 
-  // Mark day complete
+  // Mark session complete
   const markDayDone = () => {
     const exerciseDetails = groups.flatMap(g =>
       g.exercises.map((slot, i) => {
@@ -302,15 +321,19 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
         return { id:slot.exerciseId, name:ex?.name||slot.exerciseId, sets:setsLog[`${g.id}_${i}`]||0, weight:ex?.weight||"", weightUnit:ex?.weightUnit||"", group:g.name };
       })
     );
-    const entry = { date:tISO, day:tKey, completedAt:new Date().toISOString(), groupCount:groups.length, exerciseCount:totalEx, exercises:exerciseDetails };
-    setWorkoutLog(prev=>{
-      const filtered=(prev||[]).filter(l=>l.date!==tISO);
-      return [...filtered,entry];
+    const entry = {
+      date:tISO, sessionNumber, sessionDay: currentSession?.dayLabel,
+      completedAt:new Date().toISOString(), groupCount:groups.length,
+      exerciseCount:totalEx, exercises:exerciseDetails
+    };
+    setWorkoutLog(prev => {
+      const filtered = (prev||[]).filter(l => l.date !== tISO);
+      return [...filtered, entry];
     });
   };
   const resetToday = () => {
     setSetsLog({});
-    setWorkoutLog(prev=>(prev||[]).filter(l=>l.date!==tISO));
+    setWorkoutLog(prev => (prev||[]).filter(l => l.date !== tISO));
   };
 
   const pct = totalSets>0 ? (doneSets/totalSets)*100 : 0;
@@ -324,7 +347,14 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
         <div style={{ fontSize:11,color:"#8b919d",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6,fontWeight:600 }}>
           {today.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}
         </div>
-        <h2 style={{ margin:"0 0 6px",fontSize:30,color:"#dfe1f9",fontWeight:900,letterSpacing:"-0.04em" }}>Today's Workout</h2>
+        <h2 style={{ margin:"0 0 8px",fontSize:30,color:"#dfe1f9",fontWeight:900,letterSpacing:"-0.04em" }}>Today's Workout</h2>
+        {currentSession && (
+          <div style={{ display:"inline-flex",alignItems:"center",gap:6,background:"rgba(91,156,246,0.1)",outline:"1px solid rgba(91,156,246,0.2)",borderRadius:999,padding:"4px 12px",marginBottom:8 }}>
+            <span style={{ fontSize:11,color:"#5b9cf6",fontWeight:700 }}>Session {sessionNumber}</span>
+            <span style={{ fontSize:11,color:"#5a5f7a" }}>·</span>
+            <span style={{ fontSize:11,color:"#8b919d" }}>{currentSession.dayLabel} routine</span>
+          </div>
+        )}
         {totalEx > 0 && (
           <div style={{ display:"flex",alignItems:"center",gap:10,flexWrap:"wrap" }}>
             <span style={{ fontSize:13,color:"#5a5f7a" }}>{doneEx}/{totalEx} exercises</span>
@@ -349,12 +379,12 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
         </div>
       )}
 
-      {/* Rest day */}
+      {/* No session — schedule is empty */}
       {groups.length === 0 && (
         <div style={{ background:"#26293b",borderRadius:18,padding:40,textAlign:"center",outline:"1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ fontSize:48,marginBottom:12 }}>🛌</div>
-          <div style={{ color:"#9399b8",fontWeight:800,fontSize:17 }}>Rest Day</div>
-          <div style={{ color:"#3a3d5a",fontSize:14,marginTop:6 }}>Recovery is part of the program.</div>
+          <div style={{ fontSize:48,marginBottom:12 }}>📋</div>
+          <div style={{ color:"#9399b8",fontWeight:800,fontSize:17 }}>No sessions scheduled</div>
+          <div style={{ color:"#3a3d5a",fontSize:14,marginTop:6 }}>Add groups to your weekly schedule to get started.</div>
         </div>
       )}
 
