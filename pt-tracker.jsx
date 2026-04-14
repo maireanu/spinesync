@@ -321,10 +321,10 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
     <div>
       {/* Header */}
       <div style={{ marginBottom:22 }}>
-        <div style={{ fontSize:11,color:"#4b5563",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:4 }}>
+        <div style={{ fontSize:11,color:"#8b919d",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6,fontWeight:600 }}>
           {today.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}
         </div>
-        <h2 style={{ margin:"0 0 6px",fontSize:26,color:"#e8eaf6",fontWeight:900,letterSpacing:"-0.5px" }}>Today's Workout</h2>
+        <h2 style={{ margin:"0 0 6px",fontSize:30,color:"#e0e0f9",fontWeight:900,letterSpacing:"-0.04em" }}>Today's Workout</h2>
         {totalEx > 0 && (
           <div style={{ display:"flex",alignItems:"center",gap:10,flexWrap:"wrap" }}>
             <span style={{ fontSize:13,color:"#5a5f7a" }}>{doneEx}/{totalEx} exercises</span>
@@ -338,19 +338,20 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
 
       {/* Progress bar */}
       {totalSets > 0 && (
-        <div style={{ marginBottom:24 }}>
-          <div style={{ background:"#1a1d35",borderRadius:100,height:7,overflow:"hidden" }}>
-            <div style={{ height:"100%",background:"linear-gradient(90deg,#4f9cf9,#c084fc,#4fdb91)",backgroundSize:"200%",borderRadius:100,width:`${pct}%`,transition:"width 0.4s ease" }} />
+        <div style={{ marginBottom:28 }}>
+          <div style={{ display:"flex",justifyContent:"space-between",marginBottom:8 }}>
+            <span style={{ fontSize:13,color:"#c1c7d4",fontWeight:500 }}>{doneEx}/{totalEx} exercises · {doneSets}/{totalSets} sets</span>
+            <span style={{ fontSize:14,color:"#4f9cf9",fontWeight:800 }}>{Math.round(pct)}%</span>
           </div>
-          <div style={{ display:"flex",justifyContent:"space-between",marginTop:5,fontSize:11,color:"#3a3d5a" }}>
-            <span>Progress</span><span>{Math.round(pct)}%</span>
+          <div style={{ background:"#323346",borderRadius:100,height:7,overflow:"hidden" }}>
+            <div style={{ height:"100%",background:"linear-gradient(90deg,#4f9cf9,#c084fc,#4fdb91)",borderRadius:100,width:`${pct}%`,transition:"width 0.4s ease",boxShadow:"0 0 12px rgba(79,156,249,0.35)" }} />
           </div>
         </div>
       )}
 
       {/* Rest day */}
       {groups.length === 0 && (
-        <div style={{ background:"#12142a",border:"1px solid #1e2140",borderRadius:18,padding:40,textAlign:"center" }}>
+        <div style={{ background:"#1c1e30",borderRadius:18,padding:40,textAlign:"center",outline:"1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ fontSize:48,marginBottom:12 }}>🛌</div>
           <div style={{ color:"#9ca3af",fontWeight:800,fontSize:17 }}>Rest Day</div>
           <div style={{ color:"#3a3d5a",fontSize:14,marginTop:6 }}>Recovery is part of the program.</div>
@@ -364,17 +365,18 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
 
         return (
           <div key={group.id} style={{
-            background: allDone ? "#0c1a14" : "#12142a",
-            border:`1px solid ${allDone ? group.color+"66" : "#1e2140"}`,
-            borderRadius:18, marginBottom:14, overflow:"hidden", transition:"all 0.3s",
-            boxShadow: allDone ? `0 0 20px ${group.color}15` : "none"
+            background: allDone ? `${group.color}0d` : "#181a2c",
+            borderRadius:20, marginBottom:14, overflow:"hidden", transition:"all 0.3s",
+            outline: allDone ? `1px solid ${group.color}44` : "1px solid rgba(255,255,255,0.05)",
+            boxShadow: allDone ? `0 0 28px ${group.color}18` : "0 4px 24px rgba(0,0,0,0.3)"
           }}>
+          <div style={{ background: allDone ? "transparent" : "#1c1e30", borderRadius:18, margin:4, overflow:"hidden" }}>
             {/* Group header */}
-            <div style={{ display:"flex",alignItems:"center",gap:12,padding:"15px 18px",cursor:"pointer",borderBottom: isCollapsed?"none":`1px solid ${allDone?group.color+"1a":"#1a1d35"}` }} onClick={()=>setCollapsed(c=>({...c,[group.id]:!c[group.id]}))}>
-              <div style={{ width:12,height:12,borderRadius:"50%",background:group.color,flexShrink:0,boxShadow:`0 0 10px ${group.color}99` }} />
+            <div style={{ display:"flex",alignItems:"center",gap:12,padding:"16px 18px",cursor:"pointer",borderBottom: isCollapsed?"none":`1px solid rgba(255,255,255,0.05)` }} onClick={()=>setCollapsed(c=>({...c,[group.id]:!c[group.id]}))}>
+              <div style={{ width:11,height:11,borderRadius:"50%",background:group.color,flexShrink:0,boxShadow:`0 0 10px ${group.color}`,animation:"spinePulse 2.5s ease-in-out infinite" }} />
               <div style={{ flex:1 }}>
-                <div style={{ fontWeight:800,color:"#e8eaf6",fontSize:15 }}>{group.name}</div>
-                <div style={{ fontSize:12,color:"#3a3d5a",marginTop:1 }}>
+                <div style={{ fontWeight:800,color:"#e0e0f9",fontSize:15,letterSpacing:"-0.01em" }}>{group.name}</div>
+                <div style={{ fontSize:12,color:"#8b919d",marginTop:2 }}>
                   {group.exercises.filter((_,i)=>isExDone(group.id,i,getExerciseById(exercises,group.exercises[i].exerciseId))).length}/{group.exercises.length} exercises
                 </div>
               </div>
@@ -387,12 +389,12 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
                 })}
               </div>
               {allDone && <span style={{ fontSize:16 }}>✅</span>}
-              <span style={{ color:"#3a3d5a",fontSize:18 }}>{isCollapsed?"›":"⌄"}</span>
+              <span style={{ color:"#414752",fontSize:18,lineHeight:1 }}>{isCollapsed?"›":"⌄"}</span>
             </div>
 
             {/* Exercises */}
             {!isCollapsed && (
-              <div style={{ padding:"6px 16px 16px" }}>
+              <div style={{ padding:"4px 16px 16px" }}>
                 {group.exercises.map((slot, idx) => {
                   const ex = getExerciseById(exercises, slot.exerciseId);
                   const meta = CATEGORY_META[slot.category];
@@ -402,7 +404,7 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
                   const isDone = doneS >= totalS;
 
                   return (
-                    <div key={idx} style={{ padding:"13px 0",borderBottom: idx<group.exercises.length-1?"1px solid #181b30":"none",opacity:isDone?0.55:1,transition:"opacity 0.3s" }}>
+                    <div key={idx} style={{ padding:"14px 0",borderBottom: idx<group.exercises.length-1?"1px solid rgba(255,255,255,0.04)":"none",opacity:isDone?0.5:1,transition:"opacity 0.3s" }}>
                       {/* Top row */}
                       <div style={{ display:"flex",alignItems:"flex-start",gap:10 }}>
                         <div style={{ flex:1,minWidth:0 }}>
@@ -415,19 +417,22 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
                             <WeightBadge weight={ex.weight} weightUnit={ex.weightUnit} />
                           </div>
                           <div style={{ fontSize:11,color:"#3a3d5a",marginBottom:8 }}>{ex.muscles.join(" · ")}</div>
-                          <div style={{ background:"#0b0d1e",borderRadius:8,padding:"8px 11px",fontSize:12,color:"#5a5f7a",lineHeight:1.65,borderLeft:`2px solid ${meta.color}44` }}>💡 {ex.tips}</div>
+                          <div style={{ background:"rgba(11,13,30,0.6)",borderRadius:10,padding:"10px 12px",fontSize:12,color:"#8b919d",lineHeight:1.7,borderLeft:`2px solid ${meta.color}55` }}>💡 {ex.tips}</div>
                         </div>
                       </div>
 
                       {/* Set tracker */}
-                      <div style={{ display:"flex",alignItems:"center",gap:10,marginTop:12,padding:"10px 12px",background:"#0b0d1e",borderRadius:12 }}>
-                        <span style={{ fontSize:11,color:"#5a5f7a",fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase",flex:1 }}>
+                      <div style={{ display:"flex",alignItems:"center",gap:8,marginTop:12,padding:"10px 12px",background:"rgba(11,13,30,0.5)",borderRadius:12 }}>
+                        <span style={{ fontSize:11,color:"#8b919d",fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase",flex:1 }}>
                           Sets: {doneS}/{totalS}
                         </span>
                         {/* set pips */}
-                        <div style={{ display:"flex",gap:5 }}>
+                        <div style={{ display:"flex",gap:6 }}>
                           {Array.from({length:totalS}).map((_,si)=>(
-                            <div key={si} style={{ width:10,height:10,borderRadius:"50%",background:si<doneS?group.color:"#252848",border:`1px solid ${si<doneS?group.color:"#303358"}`,transition:"background 0.2s",cursor:"pointer" }} onClick={()=>{ if(si<doneS) removeSet(group.id,idx); else addSet(group.id,idx,ex); }} />
+                            <div key={si} onClick={()=>{ if(si<doneS) removeSet(group.id,idx); else addSet(group.id,idx,ex); }}
+                              style={{ width:32,height:32,borderRadius:"50%",background:si<doneS?group.color:"#323346",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",transition:"all 0.2s",boxShadow:si<doneS?`0 0 10px ${group.color}55`:"none",fontSize:15,fontWeight:800,color:si<doneS?"#0b0d1e":"#414752" }}>
+                              {si < doneS ? "✓" : si + 1}
+                            </div>
                           ))}
                         </div>
                         {isDone
@@ -440,6 +445,7 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
                 })}
               </div>
             )}
+            </div>{/* end inner double-layer */}
           </div>
         );
       })}
@@ -958,39 +964,39 @@ export default function App() {
   ];
 
   return (
-    <div style={{ minHeight:"100vh",background:"#0b0d1e",fontFamily:"'DM Sans',system-ui,sans-serif",color:"#e8eaf6" }}>
+    <div style={{ minHeight:"100vh",background:"#0b0d1e",fontFamily:"'Manrope',system-ui,sans-serif",color:"#e0e0f9" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,800;9..40,900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;}
-        ::-webkit-scrollbar{width:5px;background:#0b0d1e;}
-        ::-webkit-scrollbar-thumb{background:#252848;border-radius:3px;}
+        ::-webkit-scrollbar{width:0px;}
         select,textarea,input{font-family:inherit;}
-        select option{background:#12142a;}
+        select option{background:#1c1e30;}
         button:disabled{opacity:0.25;cursor:default!important;}
         input:focus,textarea:focus,select:focus{border-color:#4f9cf9!important;}
+        @keyframes spinePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.15)}}
       `}</style>
 
       {/* Header */}
-      <div style={{ padding:"14px 18px 12px",borderBottom:"1px solid #181a30",background:"#0b0d1e",position:"sticky",top:0,zIndex:50 }}>
+      <div style={{ padding:"14px 18px 12px",background:"rgba(11,13,30,0.6)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",position:"sticky",top:0,zIndex:50,boxShadow:"0px 24px 48px rgba(0,0,0,0.4)",outline:"1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ maxWidth:660,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
           <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-            <span style={{ fontSize:24 }}>🩺</span>
+            <span style={{ fontSize:22,color:"#4f9cf9" }}>⬡</span>
             <div>
-              <div style={{ fontWeight:900,fontSize:16,color:"#e8eaf6",lineHeight:1 }}>PT Tracker</div>
-              <div style={{ fontSize:10,color:"#2a2d4a",marginTop:2,letterSpacing:"0.1em" }}>PHYSICAL THERAPY & EXERCISE</div>
+              <div style={{ fontWeight:900,fontSize:17,color:"#e0e0f9",lineHeight:1,letterSpacing:"-0.02em" }}>SpineSync</div>
+              <div style={{ fontSize:10,color:"#414752",marginTop:2,letterSpacing:"0.08em" }}>PHYSICAL THERAPY & EXERCISE</div>
             </div>
           </div>
           {streak>0&&(
-            <div style={{ display:"flex",alignItems:"center",gap:5,background:"#1a1430",border:"1px solid #f9c74f33",borderRadius:20,padding:"5px 12px" }}>
-              <span style={{ fontSize:14 }}>🔥</span>
-              <span style={{ color:"#f9c74f",fontWeight:800,fontSize:13 }}>{streak}</span>
+            <div style={{ display:"flex",alignItems:"center",gap:5,background:"rgba(186,127,246,0.1)",outline:"1px solid rgba(186,127,246,0.2)",borderRadius:999,padding:"5px 13px" }}>
+              <span style={{ fontSize:13 }}>🔥</span>
+              <span style={{ color:"#ba7ff6",fontWeight:800,fontSize:13 }}>{streak} day streak</span>
             </div>
           )}
         </div>
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth:660,margin:"0 auto",padding:"20px 14px 100px" }}>
+      <div style={{ maxWidth:660,margin:"0 auto",padding:"24px 16px 112px" }}>
         {view==="today"    && <TodayView    schedule={schedule} exercises={exercises} workoutLog={workoutLog} setWorkoutLog={setWorkoutLog} />}
         {view==="schedule" && <ScheduleView schedule={schedule} setSchedule={setSchedule} exercises={exercises} workoutLog={workoutLog} />}
         {view==="exercises"&& <ExercisesView exercises={exercises} setExercises={setExercises} />}
@@ -999,13 +1005,12 @@ export default function App() {
       </div>
 
       {/* Bottom Nav */}
-      <div style={{ position:"fixed",bottom:0,left:0,right:0,background:"#0b0d1e",borderTop:"1px solid #181a30",display:"flex",justifyContent:"center",padding:"6px 0 10px",zIndex:50 }}>
-        <div style={{ display:"flex",maxWidth:420,width:"100%" }}>
+      <div style={{ position:"fixed",bottom:20,left:0,right:0,display:"flex",justifyContent:"center",zIndex:50,pointerEvents:"none" }}>
+        <div style={{ display:"flex",alignItems:"center",background:"rgba(24,26,44,0.85)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderRadius:999,padding:"6px 8px",gap:2,boxShadow:"0px 24px 48px rgba(0,0,0,0.6)",outline:"1px solid rgba(255,255,255,0.09)",pointerEvents:"all" }}>
           {nav.map(item=>(
-            <button key={item.key} onClick={()=>setView(item.key)} style={{ flex:1,background:"none",border:"none",cursor:"pointer",color:view===item.key?"#4f9cf9":"#2a2d4a",padding:"7px 2px",display:"flex",flexDirection:"column",alignItems:"center",gap:2,transition:"color 0.15s" }}>
-              <span style={{ fontSize:18 }}>{item.icon}</span>
-              <span style={{ fontSize:9,fontWeight:800,letterSpacing:"0.06em" }}>{item.label.toUpperCase()}</span>
-              <div style={{ width:view===item.key?16:0,height:2,background:"#4f9cf9",borderRadius:1,transition:"width 0.2s" }} />
+            <button key={item.key} onClick={()=>setView(item.key)} style={{ background:view===item.key?"#4f9cf9":"none",border:"none",cursor:"pointer",borderRadius:999,width:44,height:44,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:1,transition:"all 0.2s",boxShadow:view===item.key?"0 0 15px rgba(79,156,249,0.45)":"none" }}>
+              <span style={{ fontSize:16,filter:view===item.key?"brightness(0) invert(1)":"none",opacity:view===item.key?1:0.35 }}>{item.icon}</span>
+              <span style={{ fontSize:8,fontWeight:800,letterSpacing:"0.06em",color:view===item.key?"#0b0d1e":"#8b919d" }}>{item.label.toUpperCase()}</span>
             </button>
           ))}
         </div>
