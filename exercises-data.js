@@ -4,7 +4,7 @@
 //   2_strength_body_shape/exercises.md → muscle category
 //   3_cardio_breathing/exercises.md  → cardio + breathing categories
 //
-// Usage in pt-tracker.jsx:
+// Usage in spinesync-app.jsx:
 //   import { EXERCISES, SCHEDULE } from "./exercises-data.js";
 //   Replace DEFAULT_EXERCISES and DEFAULT_SCHEDULE with these.
 //
