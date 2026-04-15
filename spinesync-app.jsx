@@ -372,7 +372,9 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
 
   // Build the ordered session pattern from the weekly schedule
   const sessionPattern = buildSessionPattern(schedule);
-  const completedCount = (workoutLog || []).length;
+  // Don't count today's completed session — keep showing today's routine until tomorrow
+  const todayLog = (workoutLog || []).find(l => l.date === tISO);
+  const completedCount = (workoutLog || []).filter(l => l.date !== tISO).length;
 
   // Current session = next uncompleted in the cycle (wraps after full cycle)
   const currentSession = sessionPattern.length > 0
@@ -521,7 +523,7 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
 
   const pct = totalSets>0 ? (doneSets/totalSets)*100 : 0;
   const today = new Date();
-  const log = (workoutLog||[]).find(l=>l.date===tISO);
+  const log = todayLog;
 
   return (
     <div>
