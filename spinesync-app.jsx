@@ -313,20 +313,6 @@ function useElapsed(startedAt, endedAt) {
   return (endedAt ? new Date(endedAt).getTime() : now) - new Date(startedAt).getTime();
 }
 
-function SessionTimer({ startedAt, endedAt }) {
-  const elapsed = useElapsed(startedAt, endedAt);
-  if (elapsed === null) return null;
-  const running = !!startedAt && !endedAt;
-  return (
-    <div style={{ display:"flex",alignItems:"center",gap:10,background:"#1f2235",border:`1px solid ${running?"rgba(68,226,205,0.25)":"rgba(251,191,36,0.2)"}`,borderRadius:14,padding:"11px 16px",marginBottom:22 }}>
-      <div style={{ width:8,height:8,borderRadius:"50%",background:running?"#44e2cd":"#fbbf24",flexShrink:0,...(running?{animation:"spinePulse 1.5s ease-in-out infinite"}:{}) }} />
-      <span style={{ fontSize:11,color:"#5a5f7a",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase" }}>Session Time</span>
-      <span style={{ flex:1,textAlign:"right",fontVariantNumeric:"tabular-nums",fontSize:22,fontWeight:900,color:running?"#44e2cd":"#fbbf24",letterSpacing:"0.04em" }}>{formatElapsed(elapsed)}</span>
-      {!running && <span style={{ fontSize:11,color:"#fbbf24",fontWeight:700 }}>DONE ✓</span>}
-    </div>
-  );
-}
-
 function GroupTimerBadge({ startedAt, endedAt }) {
   const elapsed = useElapsed(startedAt, endedAt);
   if (elapsed === null) return null;
@@ -335,6 +321,48 @@ function GroupTimerBadge({ startedAt, endedAt }) {
     <span style={{ fontSize:11,fontVariantNumeric:"tabular-nums",fontWeight:700,color:running?"#44e2cd":"#fbbf2488",background:running?"rgba(68,226,205,0.08)":"rgba(251,191,36,0.06)",border:`1px solid ${running?"rgba(68,226,205,0.2)":"rgba(251,191,36,0.15)"}`,borderRadius:6,padding:"2px 8px",flexShrink:0 }}>
       ⏱ {formatElapsed(elapsed)}
     </span>
+  );
+}
+
+function GroupSessionTimer({ groupName, color, startedAt, endedAt }) {
+  const elapsed = useElapsed(startedAt, endedAt);
+  if (elapsed === null) return null;
+  const running = !!startedAt && !endedAt;
+  return (
+    <div style={{ display:"flex",alignItems:"center",gap:10,background:"#1a1d2e",border:`1px solid ${running?`${color}40`:"rgba(251,191,36,0.2)"}`,borderRadius:12,padding:"9px 14px",margin:"0 16px 8px" }}>
+      <div style={{ width:7,height:7,borderRadius:"50%",background:running?color:"#fbbf24",flexShrink:0,...(running?{animation:"spinePulse 1.5s ease-in-out infinite"}:{}) }} />
+      <span style={{ fontSize:11,color:"#5a5f7a",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase" }}>Group Time</span>
+      <span style={{ flex:1,textAlign:"right",fontVariantNumeric:"tabular-nums",fontSize:18,fontWeight:900,color:running?color:"#fbbf24",letterSpacing:"0.04em" }}>{formatElapsed(elapsed)}</span>
+      {!running && <span style={{ fontSize:10,color:"#fbbf24",fontWeight:700 }}>DONE ✓</span>}
+    </div>
+  );
+}
+
+function TotalSessionTimer({ groupTimers }) {
+  const [now, setNow] = useState(Date.now());
+  const anyRunning = Object.values(groupTimers || {}).some(t => t.startedAt && !t.endedAt);
+  useEffect(() => {
+    if (!anyRunning) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [anyRunning]);
+
+  const entries = Object.values(groupTimers || {}).filter(t => t.startedAt);
+  if (entries.length === 0) return null;
+
+  const totalMs = entries.reduce((sum, t) => {
+    const end = t.endedAt ? new Date(t.endedAt).getTime() : now;
+    return sum + Math.max(0, end - new Date(t.startedAt).getTime());
+  }, 0);
+  const allDone = entries.length > 0 && entries.every(t => t.endedAt);
+
+  return (
+    <div style={{ display:"flex",alignItems:"center",gap:10,background:"#1f2235",border:`1px solid ${allDone?"rgba(251,191,36,0.2)":"rgba(68,226,205,0.25)"}`,borderRadius:14,padding:"11px 16px",marginBottom:22 }}>
+      <div style={{ width:8,height:8,borderRadius:"50%",background:allDone?"#fbbf24":"#44e2cd",flexShrink:0,...(!allDone?{animation:"spinePulse 1.5s ease-in-out infinite"}:{}) }} />
+      <span style={{ fontSize:11,color:"#5a5f7a",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase" }}>Total Session Time</span>
+      <span style={{ flex:1,textAlign:"right",fontVariantNumeric:"tabular-nums",fontSize:22,fontWeight:900,color:allDone?"#fbbf24":"#44e2cd",letterSpacing:"0.04em" }}>{formatElapsed(totalMs)}</span>
+      {allDone && <span style={{ fontSize:11,color:"#fbbf24",fontWeight:700 }}>DONE ✓</span>}
+    </div>
   );
 }
 
@@ -373,14 +401,18 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
   // Explicit start functions — timers never auto-start from set counts
   const startSession = () => {
     const now = new Date().toISOString();
-    setTimers(prev => prev.session?.startedAt ? prev : { ...prev, session: { startedAt: now, endedAt: null } });
+    // Start the first group if none started yet
+    const firstGroup = groups[0];
+    setTimers(prev => {
+      if (Object.values(prev.groups || {}).some(t => t.startedAt)) return prev;
+      return { ...prev, groups: { ...(prev.groups || {}), ...(firstGroup ? { [firstGroup.id]: { startedAt: now, endedAt: null } } : {}) } };
+    });
   };
   const startGroup = (gid) => {
     const now = new Date().toISOString();
     setTimers(prev => {
-      const session = prev.session?.startedAt ? prev.session : { startedAt: now, endedAt: null };
       const updatedGroups = { ...(prev.groups || {}), [gid]: { startedAt: now, endedAt: null } };
-      return { ...prev, session, groups: updatedGroups };
+      return { ...prev, groups: updatedGroups };
     });
   };
 
@@ -455,10 +487,16 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
   // Mark session complete
   const markDayDone = () => {
     const now = new Date().toISOString();
-    setTimers(prev => ({
-      ...prev,
-      session: prev.session ? { ...prev.session, endedAt: prev.session.endedAt || now } : { startedAt: now, endedAt: now }
-    }));
+    // End any running group timers
+    setTimers(prev => {
+      const updatedGroups = { ...(prev.groups || {}) };
+      groups.forEach(g => {
+        if (updatedGroups[g.id]?.startedAt && !updatedGroups[g.id]?.endedAt) {
+          updatedGroups[g.id] = { ...updatedGroups[g.id], endedAt: now };
+        }
+      });
+      return { ...prev, groups: updatedGroups };
+    });
     const exerciseDetails = groups.flatMap(g =>
       g.exercises.map((slot, i) => {
         const ex = getExerciseById(exercises, slot.exerciseId);
@@ -526,8 +564,8 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
 
       {/* Session timer / Start Workout button */}
       {groups.length > 0 && !log && (
-        timers.session?.startedAt
-          ? <SessionTimer startedAt={timers.session.startedAt} endedAt={timers.session.endedAt} />
+        Object.values(timers.groups || {}).some(t => t.startedAt)
+          ? <TotalSessionTimer groupTimers={timers.groups} />
           : <button onClick={startSession} style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:10,width:"100%",background:"linear-gradient(135deg,#1a2e1a,#1a1d2e)",border:"1px solid rgba(68,226,205,0.35)",borderRadius:14,padding:"14px 20px",cursor:"pointer",marginBottom:22,transition:"all 0.2s" }}
               onMouseOver={e=>e.currentTarget.style.background="linear-gradient(135deg,#1e3a1e,#1e2140)"}
               onMouseOut={e=>e.currentTarget.style.background="linear-gradient(135deg,#1a2e1a,#1a1d2e)"}
@@ -539,7 +577,7 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
               </div>
             </button>
       )}
-      {log && <SessionTimer startedAt={timers.session?.startedAt} endedAt={timers.session?.endedAt} />}
+      {log && <TotalSessionTimer groupTimers={timers.groups} />}
 
       {/* No session — schedule is empty */}
       {groups.length === 0 && (
@@ -592,6 +630,11 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
               {allDone && <span style={{ fontSize:16 }}>✅</span>}
               <span style={{ color:"#414752",fontSize:18,lineHeight:1 }}>{isCollapsed?"›":"⌄"}</span>
             </div>
+
+            {/* Group session timer */}
+            {timers.groups?.[group.id]?.startedAt && !isCollapsed && (
+              <GroupSessionTimer groupName={group.name} color={group.color} startedAt={timers.groups[group.id].startedAt} endedAt={timers.groups[group.id].endedAt} />
+            )}
 
             {/* Exercises */}
             {!isCollapsed && (
