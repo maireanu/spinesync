@@ -72,6 +72,7 @@ export default function ExercisesView({ exercises, setExercises }) {
   const [showForm,setShowForm] = useState(false);
   const [editingEx,setEditingEx] = useState(null);
   const [detail,setDetail] = useState(null);
+  const [search,setSearch] = useState("");
 
   const handleSave = (ex) => {
     setExercises(prev=>{
@@ -88,13 +89,23 @@ export default function ExercisesView({ exercises, setExercises }) {
   };
   const edit = (ex,cat) => { setEditingEx({...ex,muscles:ex.muscles.join(", "),category:cat}); setShowForm(true); };
 
-  const catEx = exercises[activeCategory]||[];
+  const q = search.toLowerCase().trim();
+  const catEx = (exercises[activeCategory]||[]).filter(ex =>
+    !q || ex.name.toLowerCase().includes(q) || ex.muscles.some(m=>m.toLowerCase().includes(q)) || (ex.notes||'').toLowerCase().includes(q)
+  );
 
   return (
     <div>
-      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20 }}>
+      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12 }}>
         <h2 style={{ margin:0,fontSize:24,color:"#dfe1f9",fontWeight:900,letterSpacing:"-0.5px" }}>Library</h2>
         <button onClick={()=>{setEditingEx(null);setShowForm(true);}} style={{ background:"#5b9cf6",border:"none",borderRadius:9,color:"#fff",padding:"8px 16px",cursor:"pointer",fontWeight:800,fontSize:13 }}>+ Add</button>
+      </div>
+
+      {/* Search */}
+      <div style={{ position:"relative",marginBottom:16 }}>
+        <span style={{ position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",fontSize:14,color:"#5a5f7a",pointerEvents:"none" }}>🔍</span>
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search by name, muscle, or notes…" style={{ ...INP,marginBottom:0,paddingLeft:34 }} />
+        {search && <button onClick={()=>setSearch("")} style={{ position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#5a5f7a",cursor:"pointer",fontSize:16,lineHeight:1 }}>×</button>}
       </div>
 
       {/* Category tabs */}
