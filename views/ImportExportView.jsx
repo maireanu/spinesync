@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LBL } from "../constants.js";
+import { T, LBL } from "../constants.js";
 
 export default function ImportExportView({ exercises, setExercises, schedule, setSchedule, workoutLog, setWorkoutLog }) {
   const [importText,setImportText] = useState("");
@@ -47,30 +47,30 @@ export default function ImportExportView({ exercises, setExercises, schedule, se
     } catch { setStatus("❌ Invalid JSON."); }
   };
 
-  const TA={ width:"100%",background:"#1a1d2e",border:"1px solid #1e2140",borderRadius:9,padding:12,color:"#d1fae5",fontSize:12,fontFamily:"monospace",resize:"vertical",outline:"none",boxSizing:"border-box",lineHeight:1.6 };
+  const TA={ width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:9,padding:12,color:T.text,fontSize:12,fontFamily:"monospace",resize:"vertical",outline:"none",boxSizing:"border-box",lineHeight:1.6 };
 
   return (
     <div>
-      <h2 style={{ margin:"0 0 6px",fontSize:24,color:"#dfe1f9",fontWeight:900,letterSpacing:"-0.5px" }}>Import / Export</h2>
-      <p style={{ color:"#5a5f7a",fontSize:14,marginBottom:22,lineHeight:1.6 }}>Human-readable JSON. Edit in any text editor, store on Google Drive, share with your therapist.</p>
+      <h2 style={{ margin:"0 0 6px",fontSize:24,color:T.text,fontWeight:900,letterSpacing:"-0.5px" }}>Import / Export</h2>
+      <p style={{ color:T.textMuted,fontSize:14,marginBottom:22,lineHeight:1.6 }}>Human-readable JSON. Edit in any text editor, store on Google Drive, share with your therapist.</p>
 
-      <div style={{ background:"#26293b",border:"1px solid #1e2140",borderRadius:14,padding:18,marginBottom:12 }}>
-        <h3 style={{ margin:"0 0 8px",color:"#44e2cd",fontSize:15,fontWeight:800 }}>📤 Export</h3>
-        <p style={{ color:"#9399b8",fontSize:13,margin:"0 0 14px",lineHeight:1.6 }}>Your full exercise library, schedule, and workout history.</p>
-        <button onClick={handleExport} style={{ background:"#44e2cd",border:"none",borderRadius:9,color:"#071a0f",padding:"10px 20px",cursor:"pointer",fontWeight:800,fontSize:14 }}>Download pt-exercises.json</button>
+      <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:18,marginBottom:12,boxShadow:T.shadow }}>
+        <h3 style={{ margin:"0 0 8px",color:T.accent,fontSize:15,fontWeight:800 }}>📤 Export</h3>
+        <p style={{ color:T.textSec,fontSize:13,margin:"0 0 14px",lineHeight:1.6 }}>Your full exercise library, schedule, and workout history.</p>
+        <button onClick={handleExport} style={{ background:T.accent,border:"none",borderRadius:9,color:"#fff",padding:"10px 20px",cursor:"pointer",fontWeight:800,fontSize:14 }}>Download pt-exercises.json</button>
       </div>
 
-      <div style={{ background:"#26293b",border:"1px solid #1e2140",borderRadius:14,padding:18,marginBottom:12 }}>
-        <h3 style={{ margin:"0 0 8px",color:"#5b9cf6",fontSize:15,fontWeight:800 }}>📥 Import</h3>
+      <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:18,marginBottom:12,boxShadow:T.shadow }}>
+        <h3 style={{ margin:"0 0 8px",color:T.blue,fontSize:15,fontWeight:800 }}>📥 Import</h3>
         <textarea style={{ ...TA,height:120 }} value={importText} onChange={e=>setImportText(e.target.value)} placeholder="Paste JSON here..." />
-        <button onClick={handleImport} style={{ background:"#5b9cf6",border:"none",borderRadius:9,color:"#fff",padding:"9px 20px",cursor:"pointer",fontWeight:800,fontSize:14,marginTop:8 }}>Import</button>
+        <button onClick={handleImport} style={{ background:T.blue,border:"none",borderRadius:9,color:"#fff",padding:"9px 20px",cursor:"pointer",fontWeight:800,fontSize:14,marginTop:8 }}>Import</button>
       </div>
 
-      {status&&<div style={{ background:status.startsWith("✅")?"#0c1a10":"#1a0c0c",border:`1px solid ${status.startsWith("✅")?"#44e2cd":"#f87171"}`,borderRadius:9,padding:"10px 14px",fontSize:14,color:status.startsWith("✅")?"#44e2cd":"#f87171",marginBottom:12,whiteSpace:"pre-wrap" }}>{status}</div>}
+      {status&&<div style={{ background:status.startsWith("✅")?T.accent+"0a":T.red+"0a",border:`1px solid ${status.startsWith("✅")?T.accent:T.red}`,borderRadius:9,padding:"10px 14px",fontSize:14,color:status.startsWith("✅")?T.accent:T.red,marginBottom:12,whiteSpace:"pre-wrap" }}>{status}</div>}
 
-      <div style={{ background:"#26293b",border:"1px solid #1e2140",borderRadius:14,padding:18 }}>
+      <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:18,boxShadow:T.shadow }}>
         <div style={LBL}>Format Reference (v3)</div>
-        <pre style={{ ...TA,height:180,overflow:"auto",margin:0,color:"#5a9a72" }}>{`{
+        <pre style={{ ...TA,height:180,overflow:"auto",margin:0,color:T.accent }}>{`{
   "exercises": {
     "muscle": [{
       "id": "mu2",

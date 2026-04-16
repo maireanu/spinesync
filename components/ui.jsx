@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CATEGORY_META, DIFF_COLOR, LBL } from "../constants.js";
+import { T, CATEGORY_META, DIFF_COLOR, LBL } from "../constants.js";
 
 // ─── LOGO ────────────────────────────────────────────────────────────────────
 export function SpineSyncLogo({ size = 28 }) {
@@ -7,9 +7,9 @@ export function SpineSyncLogo({ size = 28 }) {
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
       <defs>
         <linearGradient id="spinesync-lg" x1="20" y1="5" x2="20" y2="41" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#44e2cd"/>
-          <stop offset="55%" stopColor="#5b9cf6"/>
-          <stop offset="100%" stopColor="#a589f8"/>
+          <stop offset="0%" stopColor="#0d9488"/>
+          <stop offset="55%" stopColor="#3b82f6"/>
+          <stop offset="100%" stopColor="#8b5cf6"/>
         </linearGradient>
       </defs>
       <path d="M 4.44 7.44 A 22 22 0 1 1 4.44 38.56"
@@ -27,7 +27,7 @@ export function SpineSyncLogo({ size = 28 }) {
 
 // ─── SHARED UI ────────────────────────────────────────────────────────────────
 export function Badge({ color, children, small }) {
-  return <span style={{ background:color+"1e", color, border:`1px solid ${color}40`, borderRadius:6, padding: small?"1px 6px":"2px 8px", fontSize:small?10:11, fontWeight:700, letterSpacing:"0.02em", whiteSpace:"nowrap" }}>{children}</span>;
+  return <span style={{ background:color+"14", color, border:`1px solid ${color}30`, borderRadius:6, padding: small?"1px 7px":"2px 9px", fontSize:small?10:11, fontWeight:700, letterSpacing:"0.02em", whiteSpace:"nowrap" }}>{children}</span>;
 }
 
 export function WeightBadge({ weight, weightUnit }) {
@@ -35,7 +35,7 @@ export function WeightBadge({ weight, weightUnit }) {
   const label = weightUnit === "bodyweight" ? "Bodyweight"
               : weightUnit === "band" ? "Band"
               : `${weight} ${weightUnit}`;
-  return <Badge color="#fbbf24">⚖ {label}</Badge>;
+  return <Badge color={T.amber}>⚖ {label}</Badge>;
 }
 
 export function Modal({ open, onClose, title, children, wide }) {
@@ -46,12 +46,12 @@ export function Modal({ open, onClose, title, children, wide }) {
   }, [open]);
   if (!open) return null;
   return (
-    <div style={{ position:"fixed",inset:0,background:"rgba(5,6,14,0.88)",zIndex:300,display:"flex",alignItems:"flex-end",justifyContent:"center",padding:"0",backdropFilter:"blur(8px)" }} onClick={onClose}>
-      <div style={{ background:"#26293b",border:"1px solid #313446",borderRadius:"20px 20px 0 0",maxWidth:wide?660:540,width:"100%",maxHeight:"92vh",overflowY:"auto",padding:"6px 0 0",boxShadow:"0 -20px 60px rgba(0,0,0,0.6)" }} onClick={e=>e.stopPropagation()}>
-        <div style={{ width:36,height:4,background:"#313446",borderRadius:2,margin:"10px auto 0" }} />
+    <div style={{ position:"fixed",inset:0,background:T.modalOverlay,zIndex:300,display:"flex",alignItems:"flex-end",justifyContent:"center",padding:"0",backdropFilter:"blur(6px)" }} onClick={onClose}>
+      <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:"20px 20px 0 0",maxWidth:wide?660:540,width:"100%",maxHeight:"92vh",overflowY:"auto",padding:"6px 0 0",boxShadow:T.shadowLg }} onClick={e=>e.stopPropagation()}>
+        <div style={{ width:36,height:4,background:T.border,borderRadius:2,margin:"10px auto 0" }} />
         <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 22px 14px" }}>
-          <h3 style={{ margin:0,fontSize:17,color:"#dfe1f9",fontWeight:800 }}>{title}</h3>
-          <button onClick={onClose} style={{ background:"#2e3254",border:"none",color:"#6b7280",cursor:"pointer",fontSize:22,lineHeight:1,padding:"4px 8px",borderRadius:8 }}>×</button>
+          <h3 style={{ margin:0,fontSize:17,color:T.text,fontWeight:800 }}>{title}</h3>
+          <button onClick={onClose} style={{ background:T.surface,border:"none",color:T.textMuted,cursor:"pointer",fontSize:20,lineHeight:1,padding:"4px 8px",borderRadius:8 }}>×</button>
         </div>
         <div style={{ padding:"0 22px 28px" }}>{children}</div>
       </div>
@@ -83,26 +83,26 @@ export function RestTimer({ onDismiss }) {
   const r = 36; const circ = 2 * Math.PI * r;
 
   return (
-    <div style={{ position:"fixed",bottom:80,left:"50%",transform:"translateX(-50%)",zIndex:400,background:"#26293b",border:"1px solid #313446",borderRadius:20,padding:"16px 20px",display:"flex",flexDirection:"column",alignItems:"center",gap:10,boxShadow:"0 8px 40px rgba(0,0,0,0.6)",minWidth:240 }}>
-      <div style={{ fontSize:12,color:"#5a5f7a",fontWeight:700,letterSpacing:"0.1em" }}>REST TIMER</div>
+    <div style={{ position:"fixed",bottom:80,left:"50%",transform:"translateX(-50%)",zIndex:400,background:T.card,border:`1px solid ${T.border}`,borderRadius:20,padding:"16px 20px",display:"flex",flexDirection:"column",alignItems:"center",gap:10,boxShadow:T.shadowLg,minWidth:240 }}>
+      <div style={{ fontSize:12,color:T.textMuted,fontWeight:700,letterSpacing:"0.1em" }}>REST TIMER</div>
 
       <svg width={90} height={90} style={{ transform:"rotate(-90deg)" }}>
-        <circle cx={45} cy={45} r={r} fill="none" stroke="#2e3254" strokeWidth={6} />
-        <circle cx={45} cy={45} r={r} fill="none" stroke={secs===0?"#f87171":"#44e2cd"} strokeWidth={6}
+        <circle cx={45} cy={45} r={r} fill="none" stroke={T.surfaceAlt} strokeWidth={6} />
+        <circle cx={45} cy={45} r={r} fill="none" stroke={secs===0?T.red:T.accent} strokeWidth={6}
           strokeDasharray={circ} strokeDashoffset={circ*(1-pct)} strokeLinecap="round"
           style={{ transition:"stroke-dashoffset 0.9s linear" }} />
-        <text x={45} y={45} textAnchor="middle" dominantBaseline="middle" fill={secs===0?"#f87171":"#dfe1f9"} fontSize={18} fontWeight={800} style={{ transform:"rotate(90deg)",transformOrigin:"45px 45px" }}>
+        <text x={45} y={45} textAnchor="middle" dominantBaseline="middle" fill={secs===0?T.red:T.text} fontSize={18} fontWeight={800} style={{ transform:"rotate(90deg)",transformOrigin:"45px 45px" }}>
           {secs === 0 ? "GO!" : `${secs}s`}
         </text>
       </svg>
 
       <div style={{ display:"flex",gap:6 }}>
         {[30,60,90].map(s => (
-          <button key={s} onClick={() => reset(s)} style={{ background: preset===s?"#44e2cd33":"#2e3254", border:`1px solid ${preset===s?"#44e2cd":"#313446"}`, borderRadius:8, color: preset===s?"#44e2cd":"#9399b8", padding:"5px 12px", cursor:"pointer", fontSize:12, fontWeight:700 }}>{s}s</button>
+          <button key={s} onClick={() => reset(s)} style={{ background: preset===s?T.accent+"18":T.surface, border:`1px solid ${preset===s?T.accent:T.border}`, borderRadius:8, color: preset===s?T.accent:T.textSec, padding:"5px 12px", cursor:"pointer", fontSize:12, fontWeight:700 }}>{s}s</button>
         ))}
       </div>
 
-      <button onClick={onDismiss} style={{ background:"none",border:"none",color:"#5a5f7a",cursor:"pointer",fontSize:12,padding:"2px 8px" }}>Dismiss</button>
+      <button onClick={onDismiss} style={{ background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:12,padding:"2px 8px" }}>Dismiss</button>
     </div>
   );
 }
@@ -128,11 +128,11 @@ export function MediaView({ url, alt }) {
 
   const wrap = {
     marginBottom: 16, borderRadius: 12, overflow: "hidden",
-    background: "#1a1d2e", position: "relative", minHeight: 160,
+    background: T.surface, position: "relative", minHeight: 160, border: `1px solid ${T.border}`,
   };
   const skeleton = {
     position: "absolute", inset: 0,
-    background: "linear-gradient(90deg,#26293b 25%,#1a1e3a 50%,#26293b 75%)",
+    background: `linear-gradient(90deg,${T.surface} 25%,${T.surfaceAlt} 50%,${T.surface} 75%)`,
     backgroundSize: "200% 100%",
     animation: "shimmer 1.4s infinite",
     display: loaded ? "none" : "block",
@@ -194,14 +194,14 @@ export function ExerciseDetailModal({ ex, category, open, onClose }) {
       {(ex.weight || ex.weightUnit === "bodyweight" || ex.weightUnit === "band") && (
         <div style={{ marginBottom:16 }}>
           <div style={LBL}>Load</div>
-          <div style={{ color:"#fbbf24",fontWeight:700,fontSize:14 }}>
+          <div style={{ color:T.amber,fontWeight:700,fontSize:14 }}>
             {ex.weightUnit==="bodyweight" ? "Bodyweight" : ex.weightUnit==="band" ? "Resistance Band" : `${ex.weight} ${ex.weightUnit}`}
           </div>
         </div>
       )}
       <div style={{ marginBottom:16 }}>
         <div style={LBL}>Muscles Used</div>
-        <div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>{ex.muscles.map(m=><Badge key={m} color="#9399b8">{m}</Badge>)}</div>
+        <div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>{ex.muscles.map(m=><Badge key={m} color={T.textSec}>{m}</Badge>)}</div>
       </div>
       <div style={{ marginBottom: ex.notes ? 16 : 0 }}>
         <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6 }}>
@@ -209,17 +209,17 @@ export function ExerciseDetailModal({ ex, category, open, onClose }) {
           <a
             href={`https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name + ' exercise how to')}`}
             target="_blank" rel="noopener noreferrer"
-            style={{ display:"inline-flex",alignItems:"center",gap:5,fontSize:12,fontWeight:600,color:"#f87171",textDecoration:"none",background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.25)",borderRadius:20,padding:"3px 10px",transition:"background 0.2s" }}
-            onMouseOver={e=>e.currentTarget.style.background="rgba(248,113,113,0.22)"}
-            onMouseOut={e=>e.currentTarget.style.background="rgba(248,113,113,0.1)"}
+            style={{ display:"inline-flex",alignItems:"center",gap:5,fontSize:12,fontWeight:600,color:T.red,textDecoration:"none",background:T.red+"14",border:`1px solid ${T.red}30`,borderRadius:20,padding:"3px 10px",transition:"background 0.2s" }}
+            onMouseOver={e=>e.currentTarget.style.background=T.red+"28"}
+            onMouseOut={e=>e.currentTarget.style.background=T.red+"14"}
           >▶ Watch on YouTube</a>
         </div>
-        <div style={{ background:"#1a1d2e",borderRadius:10,padding:"13px 15px",color:"#c4c8e8",fontSize:14,lineHeight:1.75,borderLeft:`3px solid ${meta.color}` }}>{ex.tips}</div>
+        <div style={{ background:T.surface,borderRadius:10,padding:"13px 15px",color:T.textSec,fontSize:14,lineHeight:1.75,borderLeft:`3px solid ${meta.color}` }}>{ex.tips}</div>
       </div>
       {ex.notes && (
         <div style={{ marginTop:16 }}>
           <div style={LBL}>📝 Personal Notes</div>
-          <div style={{ background:"#1a1d2e",borderRadius:10,padding:"13px 15px",color:"#9399b8",fontSize:13,lineHeight:1.7,borderLeft:"3px solid #fbbf24" }}>{ex.notes}</div>
+          <div style={{ background:T.surface,borderRadius:10,padding:"13px 15px",color:T.textSec,fontSize:13,lineHeight:1.7,borderLeft:`3px solid ${T.amber}` }}>{ex.notes}</div>
         </div>
       )}
     </Modal>

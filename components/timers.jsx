@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { T } from "../constants.js";
 
 export function formatElapsed(ms) {
   if (ms < 0) ms = 0;
@@ -26,7 +27,7 @@ export function GroupTimerBadge({ startedAt, endedAt }) {
   if (elapsed === null) return null;
   const running = !!startedAt && !endedAt;
   return (
-    <span style={{ fontSize:11,fontVariantNumeric:"tabular-nums",fontWeight:700,color:running?"#44e2cd":"#fbbf2488",background:running?"rgba(68,226,205,0.08)":"rgba(251,191,36,0.06)",border:`1px solid ${running?"rgba(68,226,205,0.2)":"rgba(251,191,36,0.15)"}`,borderRadius:6,padding:"2px 8px",flexShrink:0 }}>
+    <span style={{ fontSize:11,fontVariantNumeric:"tabular-nums",fontWeight:700,color:running?T.accent:T.amber+"88",background:running?T.accent+"0c":T.amber+"0a",border:`1px solid ${running?T.accent+"30":T.amber+"22"}`,borderRadius:6,padding:"2px 8px",flexShrink:0 }}>
       ⏱ {formatElapsed(elapsed)}
     </span>
   );
@@ -37,11 +38,11 @@ export function GroupSessionTimer({ groupName, color, startedAt, endedAt }) {
   if (elapsed === null) return null;
   const running = !!startedAt && !endedAt;
   return (
-    <div style={{ display:"flex",alignItems:"center",gap:10,background:"#1a1d2e",border:`1px solid ${running?`${color}40`:"rgba(251,191,36,0.2)"}`,borderRadius:12,padding:"9px 14px",margin:"0 16px 8px" }}>
-      <div style={{ width:7,height:7,borderRadius:"50%",background:running?color:"#fbbf24",flexShrink:0,...(running?{animation:"spinePulse 1.5s ease-in-out infinite"}:{}) }} />
-      <span style={{ fontSize:11,color:"#5a5f7a",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase" }}>Group Time</span>
-      <span style={{ flex:1,textAlign:"right",fontVariantNumeric:"tabular-nums",fontSize:18,fontWeight:900,color:running?color:"#fbbf24",letterSpacing:"0.04em" }}>{formatElapsed(elapsed)}</span>
-      {!running && <span style={{ fontSize:10,color:"#fbbf24",fontWeight:700 }}>DONE ✓</span>}
+    <div style={{ display:"flex",alignItems:"center",gap:10,background:T.surface,border:`1px solid ${running?`${color}40`:T.amber+"30"}`,borderRadius:12,padding:"9px 14px",margin:"0 16px 8px" }}>
+      <div style={{ width:7,height:7,borderRadius:"50%",background:running?color:T.amber,flexShrink:0,...(running?{animation:"spinePulse 1.5s ease-in-out infinite"}:{}) }} />
+      <span style={{ fontSize:11,color:T.textMuted,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase" }}>Group Time</span>
+      <span style={{ flex:1,textAlign:"right",fontVariantNumeric:"tabular-nums",fontSize:18,fontWeight:900,color:running?color:T.amber,letterSpacing:"0.04em" }}>{formatElapsed(elapsed)}</span>
+      {!running && <span style={{ fontSize:10,color:T.amber,fontWeight:700 }}>DONE ✓</span>}
     </div>
   );
 }
@@ -65,11 +66,11 @@ export function TotalSessionTimer({ groupTimers }) {
   const allDone = entries.length > 0 && entries.every(t => t.endedAt);
 
   return (
-    <div style={{ display:"flex",alignItems:"center",gap:10,background:"#1f2235",border:`1px solid ${allDone?"rgba(251,191,36,0.2)":"rgba(68,226,205,0.25)"}`,borderRadius:14,padding:"11px 16px",marginBottom:22 }}>
-      <div style={{ width:8,height:8,borderRadius:"50%",background:allDone?"#fbbf24":"#44e2cd",flexShrink:0,...(!allDone?{animation:"spinePulse 1.5s ease-in-out infinite"}:{}) }} />
-      <span style={{ fontSize:11,color:"#5a5f7a",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase" }}>Total Session Time</span>
-      <span style={{ flex:1,textAlign:"right",fontVariantNumeric:"tabular-nums",fontSize:22,fontWeight:900,color:allDone?"#fbbf24":"#44e2cd",letterSpacing:"0.04em" }}>{formatElapsed(totalMs)}</span>
-      {allDone && <span style={{ fontSize:11,color:"#fbbf24",fontWeight:700 }}>DONE ✓</span>}
+    <div style={{ display:"flex",alignItems:"center",gap:10,background:T.card,border:`1px solid ${allDone?T.amber+"30":T.accent+"30"}`,borderRadius:14,padding:"11px 16px",marginBottom:22,boxShadow:T.shadow }}>
+      <div style={{ width:8,height:8,borderRadius:"50%",background:allDone?T.amber:T.accent,flexShrink:0,...(!allDone?{animation:"spinePulse 1.5s ease-in-out infinite"}:{}) }} />
+      <span style={{ fontSize:11,color:T.textMuted,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase" }}>Total Session Time</span>
+      <span style={{ flex:1,textAlign:"right",fontVariantNumeric:"tabular-nums",fontSize:22,fontWeight:900,color:allDone?T.amber:T.accent,letterSpacing:"0.04em" }}>{formatElapsed(totalMs)}</span>
+      {allDone && <span style={{ fontSize:11,color:T.amber,fontWeight:700 }}>DONE ✓</span>}
     </div>
   );
 }

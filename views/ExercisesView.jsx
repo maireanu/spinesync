@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CATEGORY_META, DIFF_COLOR, WEIGHT_UNITS, INP, LBL } from "../constants.js";
+import { T, CATEGORY_META, DIFF_COLOR, WEIGHT_UNITS, INP, LBL } from "../constants.js";
 import { uid } from "../helpers.js";
 import { Badge, WeightBadge, Modal, ExerciseDetailModal } from "../components/ui.jsx";
 
@@ -32,7 +32,7 @@ function ExerciseForm({ initial, onSave, onCancel }) {
       </div>
 
       {/* Weight section */}
-      <div style={{ background:"#1a1d2e",border:"1px solid #1e2140",borderRadius:11,padding:14,marginBottom:12 }}>
+      <div style={{ background:T.surface,border:`1px solid ${T.border}`,borderRadius:11,padding:14,marginBottom:12 }}>
         <div style={LBL}>⚖ Weight / Load</div>
         <div style={{ display:"flex",gap:8,alignItems:"center",flexWrap:"wrap" }}>
           <select style={{ ...INP,marginBottom:0,flex:"1 1 110px" }} value={form.weightUnit} onChange={e=>set("weightUnit",e.target.value)}>
@@ -42,9 +42,9 @@ function ExerciseForm({ initial, onSave, onCancel }) {
           {hasWeight && (
             <input style={{ ...INP,marginBottom:0,flex:"1 1 80px" }} type="number" min={0} step={0.5} value={form.weight} onChange={e=>set("weight",e.target.value)} placeholder="e.g. 10" />
           )}
-          {hasWeight && <span style={{ color:"#5a5f7a",fontSize:13 }}>{form.weightUnit}</span>}
+          {hasWeight && <span style={{ color:T.textMuted,fontSize:13 }}>{form.weightUnit}</span>}
         </div>
-        <div style={{ fontSize:11,color:"#3a3d5a",marginTop:6 }}>Used for tracking and display. Set to "bodyweight" or "band" if no specific weight.</div>
+        <div style={{ fontSize:11,color:T.textMuted,marginTop:6 }}>Used for tracking and display. Set to "bodyweight" or "band" if no specific weight.</div>
       </div>
 
       <label style={LBL}>Muscles (comma-separated)</label>
@@ -60,8 +60,8 @@ function ExerciseForm({ initial, onSave, onCancel }) {
       <input style={INP} value={form.image} onChange={e=>set("image",e.target.value)} placeholder="https://..." />
 
       <div style={{ display:"flex",gap:10,marginTop:6 }}>
-        <button onClick={()=>onSave({...form,muscles:typeof form.muscles==="string"?form.muscles.split(",").map(m=>m.trim()).filter(Boolean):form.muscles,id:form.id||(form.category.slice(0,2)+uid())})} style={{ flex:1,background:"#5b9cf6",border:"none",borderRadius:10,color:"#fff",padding:11,cursor:"pointer",fontWeight:800,fontSize:14 }}>Save</button>
-        <button onClick={onCancel} style={{ flex:1,background:"#2e3254",border:"none",borderRadius:10,color:"#9399b8",padding:11,cursor:"pointer",fontSize:14 }}>Cancel</button>
+        <button onClick={()=>onSave({...form,muscles:typeof form.muscles==="string"?form.muscles.split(",").map(m=>m.trim()).filter(Boolean):form.muscles,id:form.id||(form.category.slice(0,2)+uid())})} style={{ flex:1,background:T.blue,border:"none",borderRadius:10,color:"#fff",padding:11,cursor:"pointer",fontWeight:800,fontSize:14 }}>Save</button>
+        <button onClick={onCancel} style={{ flex:1,background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,color:T.textSec,padding:11,cursor:"pointer",fontSize:14 }}>Cancel</button>
       </div>
     </div>
   );
@@ -97,48 +97,48 @@ export default function ExercisesView({ exercises, setExercises }) {
   return (
     <div>
       <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12 }}>
-        <h2 style={{ margin:0,fontSize:24,color:"#dfe1f9",fontWeight:900,letterSpacing:"-0.5px" }}>Library</h2>
-        <button onClick={()=>{setEditingEx(null);setShowForm(true);}} style={{ background:"#5b9cf6",border:"none",borderRadius:9,color:"#fff",padding:"8px 16px",cursor:"pointer",fontWeight:800,fontSize:13 }}>+ Add</button>
+        <h2 style={{ margin:0,fontSize:24,color:T.text,fontWeight:900,letterSpacing:"-0.5px" }}>Library</h2>
+        <button onClick={()=>{setEditingEx(null);setShowForm(true);}} style={{ background:T.blue,border:"none",borderRadius:9,color:"#fff",padding:"8px 16px",cursor:"pointer",fontWeight:800,fontSize:13 }}>+ Add</button>
       </div>
 
       {/* Search */}
       <div style={{ position:"relative",marginBottom:16 }}>
-        <span style={{ position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",fontSize:14,color:"#5a5f7a",pointerEvents:"none" }}>🔍</span>
+        <span style={{ position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",fontSize:14,color:T.textMuted,pointerEvents:"none" }}>🔍</span>
         <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search by name, muscle, or notes…" style={{ ...INP,marginBottom:0,paddingLeft:34 }} />
-        {search && <button onClick={()=>setSearch("")} style={{ position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#5a5f7a",cursor:"pointer",fontSize:16,lineHeight:1 }}>×</button>}
+        {search && <button onClick={()=>setSearch("")} style={{ position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:16,lineHeight:1 }}>×</button>}
       </div>
 
       {/* Category tabs */}
       <div style={{ display:"flex",gap:6,marginBottom:20,flexWrap:"wrap" }}>
         {Object.entries(CATEGORY_META).map(([k,v])=>(
-          <button key={k} onClick={()=>setActiveCategory(k)} style={{ background:activeCategory===k?v.color:"#26293b",border:`1px solid ${activeCategory===k?v.color:"#1e2140"}`,borderRadius:9,color:activeCategory===k?"#fff":"#5a5f7a",padding:"7px 13px",cursor:"pointer",fontWeight:700,fontSize:13,transition:"all 0.15s" }}>
+          <button key={k} onClick={()=>setActiveCategory(k)} style={{ background:activeCategory===k?v.color:T.card,border:`1px solid ${activeCategory===k?v.color:T.border}`,borderRadius:9,color:activeCategory===k?"#fff":T.textMuted,padding:"7px 13px",cursor:"pointer",fontWeight:700,fontSize:13,transition:"all 0.15s" }}>
             {v.icon} {v.label} <span style={{ opacity:0.6,fontWeight:400 }}>({(exercises[k]||[]).length})</span>
           </button>
         ))}
       </div>
 
-      {catEx.length===0&&<div style={{ textAlign:"center",color:"#3a3d5a",padding:"40px 0" }}>No exercises yet.</div>}
+      {catEx.length===0&&<div style={{ textAlign:"center",color:T.textMuted,padding:"40px 0" }}>No exercises yet.</div>}
 
       {catEx.map(ex=>{
         const meta=CATEGORY_META[activeCategory];
         return (
-          <div key={ex.id} style={{ background:"#26293b",border:"1px solid #1e2140",borderRadius:14,padding:"14px 16px",marginBottom:10,borderLeft:`3px solid ${meta.color}`,cursor:"pointer",transition:"border-color 0.2s" }}
+          <div key={ex.id} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px",marginBottom:10,borderLeft:`3px solid ${meta.color}`,cursor:"pointer",transition:"border-color 0.2s",boxShadow:T.shadow }}
             onMouseEnter={e=>e.currentTarget.style.borderColor=meta.color}
             onMouseLeave={e=>e.currentTarget.style.borderLeftColor=meta.color}>
             <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10 }}>
               <div style={{ flex:1 }} onClick={()=>setDetail({ex,category:activeCategory})}>
-                <div style={{ fontWeight:800,color:"#dfe1f9",fontSize:15,marginBottom:6 }}>{ex.name}</div>
+                <div style={{ fontWeight:800,color:T.text,fontSize:15,marginBottom:6 }}>{ex.name}</div>
                 <div style={{ display:"flex",gap:5,flexWrap:"wrap",marginBottom:6 }}>
                   <Badge color={meta.color} small>{ex.duration}</Badge>
                   <Badge color={DIFF_COLOR[ex.difficulty]} small>{ex.difficulty}</Badge>
                   <WeightBadge weight={ex.weight} weightUnit={ex.weightUnit} />
                 </div>
-                <div style={{ fontSize:12,color:"#3a3d5a" }}>{ex.muscles.join(" · ")}</div>
-                {ex.notes&&<div style={{ fontSize:11,color:"#5a5f7a",marginTop:4,fontStyle:"italic" }}>📝 {ex.notes.slice(0,60)}{ex.notes.length>60?"…":""}</div>}
+                <div style={{ fontSize:12,color:T.textMuted }}>{ex.muscles.join(" · ")}</div>
+                {ex.notes&&<div style={{ fontSize:11,color:T.textMuted,marginTop:4,fontStyle:"italic" }}>📝 {ex.notes.slice(0,60)}{ex.notes.length>60?"…":""}</div>}
               </div>
               <div style={{ display:"flex",gap:6,flexShrink:0 }}>
-                <button onClick={e=>{e.stopPropagation();edit(ex,activeCategory);}} style={{ background:"#2e3254",border:"none",borderRadius:7,color:"#9399b8",cursor:"pointer",padding:"5px 10px",fontSize:12 }}>✏️</button>
-                <button onClick={e=>{e.stopPropagation();del(ex.id,activeCategory);}} style={{ background:"none",border:"none",color:"#f87171",cursor:"pointer",fontSize:19,lineHeight:1 }}>×</button>
+                <button onClick={e=>{e.stopPropagation();edit(ex,activeCategory);}} style={{ background:T.surface,border:"none",borderRadius:7,color:T.textSec,cursor:"pointer",padding:"5px 10px",fontSize:12 }}>✏️</button>
+                <button onClick={e=>{e.stopPropagation();del(ex.id,activeCategory);}} style={{ background:"none",border:"none",color:T.red,cursor:"pointer",fontSize:19,lineHeight:1 }}>×</button>
               </div>
             </div>
           </div>
