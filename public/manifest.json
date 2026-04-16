@@ -1,0 +1,17 @@
+{
+  "name": "SpineSync",
+  "short_name": "SpineSync",
+  "description": "Physical therapy & exercise tracker",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b0d1e",
+  "theme_color": "#0b0d1e",
+  "icons": [
+    {
+      "src": "logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
