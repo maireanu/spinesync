@@ -375,12 +375,35 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
   // Don't count today's completed session — keep showing today's routine until tomorrow
   const todayLog = (workoutLog || []).find(l => l.date === tISO);
   const completedCount = (workoutLog || []).filter(l => l.date !== tISO).length;
+  const autoIndex = sessionPattern.length > 0 ? completedCount % sessionPattern.length : 0;
+
+  // Manual session day override — lets you pick up where you left off on another device
+  const [sessionOverride, setSessionOverride] = useState(() => {
+    try { const s = localStorage.getItem("pt_session_override"); return s ? JSON.parse(s) : null; } catch { return null; }
+  });
+  const [showDayPicker, setShowDayPicker] = useState(false);
+  const dayPickerRef = useRef(null);
+  useEffect(() => {
+    if (!showDayPicker) return;
+    const handler = (e) => { if (dayPickerRef.current && !dayPickerRef.current.contains(e.target)) setShowDayPicker(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showDayPicker]);
+  useEffect(() => {
+    try {
+      if (sessionOverride !== null) localStorage.setItem("pt_session_override", JSON.stringify(sessionOverride));
+      else localStorage.removeItem("pt_session_override");
+    } catch {}
+  }, [sessionOverride]);
+
+  const activeIndex = sessionOverride !== null && sessionOverride >= 0 && sessionOverride < sessionPattern.length
+    ? sessionOverride : autoIndex;
 
   // Current session = next uncompleted in the cycle (wraps after full cycle)
   const currentSession = sessionPattern.length > 0
-    ? sessionPattern[completedCount % sessionPattern.length]
+    ? sessionPattern[activeIndex]
     : null;
-  const sessionNumber = completedCount + 1;
+  const sessionNumber = activeIndex + 1;
   const groups = currentSession ? currentSession.groups : [];
 
   // setsLog persisted in localStorage keyed by date – survives navigation and refresh
@@ -534,10 +557,40 @@ function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
         </div>
         <h2 style={{ margin:"0 0 8px",fontSize:30,color:"#dfe1f9",fontWeight:900,letterSpacing:"-0.04em" }}>Today's Workout</h2>
         {currentSession && (
-          <div style={{ display:"inline-flex",alignItems:"center",gap:6,background:"rgba(91,156,246,0.1)",outline:"1px solid rgba(91,156,246,0.2)",borderRadius:999,padding:"4px 12px",marginBottom:8 }}>
-            <span style={{ fontSize:11,color:"#5b9cf6",fontWeight:700 }}>Session {sessionNumber}</span>
-            <span style={{ fontSize:11,color:"#5a5f7a" }}>·</span>
-            <span style={{ fontSize:11,color:"#8b919d" }}>{currentSession.dayLabel} routine</span>
+          <div ref={dayPickerRef} style={{ position:"relative",display:"inline-block",marginBottom:8 }}>
+            <button onClick={()=>setShowDayPicker(p=>!p)} style={{ display:"inline-flex",alignItems:"center",gap:6,background:"rgba(91,156,246,0.1)",outline:"1px solid rgba(91,156,246,0.2)",borderRadius:999,padding:"4px 12px",border:"none",cursor:"pointer",transition:"background 0.15s" }}
+              onMouseOver={e=>e.currentTarget.style.background="rgba(91,156,246,0.2)"}
+              onMouseOut={e=>e.currentTarget.style.background="rgba(91,156,246,0.1)"}
+            >
+              <span style={{ fontSize:11,color:"#5b9cf6",fontWeight:700 }}>Session {sessionNumber}</span>
+              <span style={{ fontSize:11,color:"#5a5f7a" }}>·</span>
+              <span style={{ fontSize:11,color:"#8b919d" }}>{currentSession.dayLabel} routine</span>
+              <span style={{ fontSize:10,color:"#5b9cf6",marginLeft:2 }}>▾</span>
+            </button>
+            {sessionOverride !== null && (
+              <button onClick={()=>{setSessionOverride(null);setShowDayPicker(false);}} title="Reset to auto" style={{ background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.2)",borderRadius:999,padding:"2px 8px",cursor:"pointer",fontSize:10,fontWeight:700,color:"#f87171",marginLeft:6,verticalAlign:"middle" }}>
+                ↩ Auto
+              </button>
+            )}
+            {showDayPicker && (
+              <div style={{ position:"absolute",top:"calc(100% + 6px)",left:0,zIndex:200,background:"#26293b",border:"1px solid #313446",borderRadius:14,padding:"8px 6px",boxShadow:"0 12px 40px rgba(0,0,0,0.6)",minWidth:200 }}>
+                <div style={{ fontSize:10,color:"#5a5f7a",fontWeight:700,letterSpacing:"0.08em",padding:"4px 10px 8px",textTransform:"uppercase" }}>Select routine day</div>
+                {sessionPattern.map((s,i)=>(
+                  <button key={s.dayKey} onClick={()=>{setSessionOverride(i);setShowDayPicker(false);}} style={{ display:"flex",alignItems:"center",gap:10,width:"100%",background:activeIndex===i?"rgba(91,156,246,0.15)":"transparent",border:"none",borderRadius:10,padding:"9px 12px",cursor:"pointer",transition:"background 0.15s",textAlign:"left" }}
+                    onMouseOver={e=>{if(activeIndex!==i)e.currentTarget.style.background="rgba(255,255,255,0.04)"}}
+                    onMouseOut={e=>{if(activeIndex!==i)e.currentTarget.style.background="transparent"}}
+                  >
+                    <div style={{ width:8,height:8,borderRadius:"50%",background:activeIndex===i?"#5b9cf6":"#313446",flexShrink:0 }} />
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:13,fontWeight:700,color:activeIndex===i?"#5b9cf6":"#dfe1f9" }}>{s.dayLabel}</div>
+                      <div style={{ fontSize:11,color:"#5a5f7a" }}>{s.groups.length} group{s.groups.length!==1?"s":""} · {s.groups.reduce((a,g)=>a+g.exercises.length,0)} exercises</div>
+                    </div>
+                    {i===autoIndex && <span style={{ fontSize:9,color:"#44e2cd",fontWeight:700,letterSpacing:"0.04em" }}>AUTO</span>}
+                    {activeIndex===i && <span style={{ fontSize:13,color:"#5b9cf6" }}>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
         {totalEx > 0 && (
