@@ -214,12 +214,12 @@ export function ExerciseDetailModal({ ex, category, open, onClose }) {
             onMouseOut={e=>e.currentTarget.style.background=T.red+"14"}
           >▶ Watch on YouTube</a>
         </div>
-        <div style={{ background:T.surface,borderRadius:10,padding:"13px 15px",color:T.textSec,fontSize:14,lineHeight:1.75,borderLeft:`3px solid ${meta.color}` }}>{ex.tips}</div>
+        <div style={{ background:T.surface,borderRadius:10,padding:"13px 15px",color:T.text,fontSize:14,lineHeight:1.75,borderLeft:`3px solid ${meta.color}` }}>{ex.tips}</div>
       </div>
       {ex.notes && (
         <div style={{ marginTop:16 }}>
           <div style={LBL}>📝 Personal Notes</div>
-          <div style={{ background:T.surface,borderRadius:10,padding:"13px 15px",color:T.textSec,fontSize:13,lineHeight:1.7,borderLeft:`3px solid ${T.amber}` }}>{ex.notes}</div>
+          <div style={{ background:T.surface,borderRadius:10,padding:"13px 15px",color:T.text,fontSize:13,lineHeight:1.7,borderLeft:`3px solid ${T.amber}` }}>{ex.notes}</div>
         </div>
       )}
     </Modal>

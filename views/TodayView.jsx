@@ -336,7 +336,7 @@ export default function TodayView({ schedule, exercises, workoutLog, setWorkoutL
                             <WeightBadge weight={ex.weight} weightUnit={ex.weightUnit} />
                           </div>
                           <div style={{ fontSize:11,color:T.textMuted,marginBottom:8 }}>{ex.muscles.join(" · ")}</div>
-                          <div style={{ background:T.surface,borderRadius:10,padding:"10px 12px",fontSize:12,color:T.textMuted,lineHeight:1.7,borderLeft:`2px solid ${meta.color}55` }}>💡 {ex.tips}</div>
+                          <div style={{ background:T.surface,borderRadius:10,padding:"10px 12px",fontSize:12,color:T.textSec,lineHeight:1.7,borderLeft:`2px solid ${meta.color}55` }}>💡 {ex.tips}</div>
                         </div>
                       </div>
                       <div style={{ display:"flex",alignItems:"center",gap:8,marginTop:12,padding:"10px 12px",background:T.surface,borderRadius:12 }}>
