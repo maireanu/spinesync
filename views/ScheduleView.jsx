@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { T, DAYS, FULL_DAYS, GROUP_COLORS, CATEGORY_META, INP, LBL } from "../constants.js";
-import { uid, todayKey, todayISO } from "../helpers.js";
+import { uid, todayKey, todayISO, buildSessionPattern } from "../helpers.js";
 import { Modal } from "../components/ui.jsx";
 
 function GroupEditor({ group, exercises, onSave, onCancel }) {
@@ -88,13 +88,38 @@ export default function ScheduleView({ schedule, setSchedule, exercises, workout
   }, [exercises]);
   const exById = (id) => exMap.get(id) || null;
   const tKey = todayKey();
-  const [selectedDay,setSelectedDay] = useState(tKey);
+  const tISO = todayISO();
+  const sessionPattern = useMemo(() => buildSessionPattern(schedule), [schedule]);
+
+  const [viewMode, setViewMode] = useState("calendar");
+  const [calendarIdx, setCalendarIdx] = useState(0);
+  const [templateDay, setTemplateDay] = useState(tKey);
   const [editGroup,setEditGroup] = useState(null);
   const [showEditor,setShowEditor] = useState(false);
 
-  const groups = schedule[selectedDay]||[];
+  // Project next 7 days to sessions based on completion count
+  const projectedDays = useMemo(() => {
+    const completed = (workoutLog || []).filter(l => l.date !== tISO).length;
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() + i);
+      const iso = date.toISOString().slice(0, 10);
+      const dayOfWeek = DAYS[(date.getDay() + 6) % 7];
+      const sessionIdx = sessionPattern.length > 0 ? (completed + i) % sessionPattern.length : -1;
+      const session = sessionIdx >= 0 ? sessionPattern[sessionIdx] : null;
+      const logEntry = (workoutLog || []).find(l => l.date === iso);
+      return { date, iso, dayOfWeek, sessionIdx, session, isToday: i === 0, done: !!logEntry };
+    });
+  }, [sessionPattern, workoutLog, tISO]);
+
+  const selectedDay = viewMode === "calendar"
+    ? (projectedDays[calendarIdx]?.session?.dayKey || null)
+    : templateDay;
+  const groups = selectedDay ? (schedule[selectedDay] || []) : [];
+  const selectedProjected = viewMode === "calendar" ? projectedDays[calendarIdx] : null;
 
   const handleSave = (g) => {
+    if (!selectedDay) return;
     setSchedule(prev=>{
       const day=[...(prev[selectedDay]||[])];
       const idx=day.findIndex(x=>x.id===g.id);
@@ -103,54 +128,125 @@ export default function ScheduleView({ schedule, setSchedule, exercises, workout
     setShowEditor(false);
   };
   const del = gid => {
+    if (!selectedDay) return;
     const group = (schedule[selectedDay]||[]).find(g=>g.id===gid);
     if (!window.confirm(`Delete group "${group?.name || 'this group'}"?`)) return;
     setSchedule(prev=>({...prev,[selectedDay]:(prev[selectedDay]||[]).filter(g=>g.id!==gid)}));
   };
-  const move = (idx,dir) => setSchedule(prev=>{
-    const day=[...(prev[selectedDay]||[])],to=idx+dir;
-    if(to<0||to>=day.length)return prev;
-    [day[idx],day[to]]=[day[to],day[idx]];
-    return {...prev,[selectedDay]:day};
-  });
+  const move = (idx,dir) => {
+    if (!selectedDay) return;
+    setSchedule(prev=>{
+      const day=[...(prev[selectedDay]||[])],to=idx+dir;
+      if(to<0||to>=day.length)return prev;
+      [day[idx],day[to]]=[day[to],day[idx]];
+      return {...prev,[selectedDay]:day};
+    });
+  };
 
   return (
     <div>
-      <h2 style={{ margin:"0 0 20px",fontSize:24,color:T.text,fontWeight:900,letterSpacing:"-0.5px" }}>Weekly Schedule</h2>
-
-      {/* Day strip */}
-      <div style={{ display:"flex",gap:5,marginBottom:24,overflowX:"auto",paddingBottom:4 }}>
-        {DAYS.map(d=>{
-          const isToday=d===tKey;
-          const logEntry=(workoutLog||[]).find(l=>l.day===d&&l.date===todayISO());
-          const gCount=(schedule[d]||[]).length;
-          const exCount=(schedule[d]||[]).reduce((s,g)=>s+g.exercises.length,0);
-          return (
-            <button key={d} onClick={()=>setSelectedDay(d)} style={{
-              flex:"1 0 46px",minWidth:46,
-              background:selectedDay===d?T.blue:isToday?T.surface:T.card,
-              border:`1px solid ${selectedDay===d?T.blue:isToday?T.blue+"44":T.border}`,
-              borderRadius:12,padding:"10px 4px",cursor:"pointer",
-              color:selectedDay===d?"#fff":T.textMuted,transition:"all 0.15s",position:"relative"
-            }}>
-              {logEntry&&<div style={{ position:"absolute",top:4,right:4,width:6,height:6,borderRadius:"50%",background:T.accent }} />}
-              <div style={{ fontSize:10,fontWeight:800,letterSpacing:"0.05em" }}>{d}</div>
-              <div style={{ fontSize:14,margin:"4px 0 2px" }}>{gCount>0?"●".repeat(Math.min(gCount,3)):"○"}</div>
-              <div style={{ fontSize:9,opacity:0.65 }}>{exCount}ex</div>
-            </button>
-          );
-        })}
-      </div>
-
-      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
-        <div>
-          <div style={{ fontWeight:800,color:T.text,fontSize:17 }}>{FULL_DAYS[DAYS.indexOf(selectedDay)]}</div>
-          <div style={{ fontSize:12,color:T.textMuted,marginTop:2 }}>{groups.length} group{groups.length!==1?"s":""} · {groups.reduce((s,g)=>s+g.exercises.length,0)} exercises</div>
+      {/* Header with view toggle */}
+      <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20 }}>
+        <h2 style={{ margin:0,fontSize:24,color:T.text,fontWeight:900,letterSpacing:"-0.5px" }}>Schedule</h2>
+        <div style={{ display:"flex",background:T.surface,borderRadius:10,padding:3,gap:2,border:`1px solid ${T.border}` }}>
+          <button onClick={()=>setViewMode("calendar")} style={{ background:viewMode==="calendar"?T.card:"transparent",border:"none",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:12,fontWeight:700,color:viewMode==="calendar"?T.text:T.textMuted,boxShadow:viewMode==="calendar"?T.shadow:"none",transition:"all 0.15s" }}>
+            📅 Calendar
+          </button>
+          <button onClick={()=>setViewMode("template")} style={{ background:viewMode==="template"?T.card:"transparent",border:"none",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:12,fontWeight:700,color:viewMode==="template"?T.text:T.textMuted,boxShadow:viewMode==="template"?T.shadow:"none",transition:"all 0.15s" }}>
+            ⚙️ Template
+          </button>
         </div>
-        <button onClick={()=>{setEditGroup(null);setShowEditor(true);}} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:9,color:T.textSec,padding:"8px 14px",cursor:"pointer",fontSize:13,fontWeight:700 }}>+ Group</button>
       </div>
 
-      {groups.length===0&&<div style={{ textAlign:"center",color:T.textMuted,padding:"36px 0",fontSize:14,borderRadius:14,border:`1px dashed ${T.border}` }}>Rest day 🛌<br/><span style={{ fontSize:12,opacity:0.7 }}>Tap "+ Group" to add exercises</span></div>}
+      {viewMode === "calendar" ? (
+        <>
+          {/* Projected 7-day strip */}
+          <div style={{ display:"flex",gap:5,marginBottom:24,overflowX:"auto",paddingBottom:4 }}>
+            {projectedDays.map((pd, i) => {
+              const isSelected = calendarIdx === i;
+              return (
+                <button key={i} onClick={()=>setCalendarIdx(i)} style={{
+                  flex:"1 0 46px",minWidth:46,
+                  background:isSelected?T.blue:pd.isToday?T.surface:T.card,
+                  border:`1px solid ${isSelected?T.blue:pd.isToday?T.blue+"44":T.border}`,
+                  borderRadius:12,padding:"10px 4px",cursor:"pointer",
+                  color:isSelected?"#fff":T.textMuted,transition:"all 0.15s",position:"relative"
+                }}>
+                  {pd.done&&<div style={{ position:"absolute",top:4,right:4,width:6,height:6,borderRadius:"50%",background:T.accent }} />}
+                  <div style={{ fontSize:10,fontWeight:800,letterSpacing:"0.05em" }}>{pd.dayOfWeek}</div>
+                  <div style={{ fontSize:16,fontWeight:800,margin:"2px 0" }}>{pd.date.getDate()}</div>
+                  {pd.session ? (
+                    <div style={{ fontSize:8,opacity:0.75,fontWeight:600 }}>S{pd.sessionIdx+1}</div>
+                  ) : (
+                    <div style={{ fontSize:8,opacity:0.5 }}>—</div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Selected day info */}
+          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
+            <div>
+              {selectedProjected?.session ? (
+                <>
+                  <div style={{ fontWeight:800,color:T.text,fontSize:17 }}>
+                    Session {selectedProjected.sessionIdx+1}
+                    <span style={{ fontSize:13,color:T.textMuted,fontWeight:500,marginLeft:8 }}>{selectedProjected.session.dayLabel} routine</span>
+                  </div>
+                  <div style={{ fontSize:12,color:T.textMuted,marginTop:2 }}>
+                    {selectedProjected.date.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})}
+                    {" · "}{groups.length} group{groups.length!==1?"s":""} · {groups.reduce((s,g)=>s+g.exercises.length,0)} exercises
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <div style={{ fontWeight:800,color:T.text,fontSize:17 }}>No sessions configured</div>
+                  <div style={{ fontSize:12,color:T.textMuted,marginTop:2 }}>Switch to Template to add exercises</div>
+                </div>
+              )}
+            </div>
+            {selectedDay && (
+              <button onClick={()=>{setEditGroup(null);setShowEditor(true);}} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:9,color:T.textSec,padding:"8px 14px",cursor:"pointer",fontSize:13,fontWeight:700 }}>+ Group</button>
+            )}
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Template mode: Mon–Sun strip */}
+          <div style={{ display:"flex",gap:5,marginBottom:24,overflowX:"auto",paddingBottom:4 }}>
+            {DAYS.map(d=>{
+              const isToday=d===tKey;
+              const gCount=(schedule[d]||[]).length;
+              const exCount=(schedule[d]||[]).reduce((s,g)=>s+g.exercises.length,0);
+              return (
+                <button key={d} onClick={()=>setTemplateDay(d)} style={{
+                  flex:"1 0 46px",minWidth:46,
+                  background:templateDay===d?T.blue:isToday?T.surface:T.card,
+                  border:`1px solid ${templateDay===d?T.blue:isToday?T.blue+"44":T.border}`,
+                  borderRadius:12,padding:"10px 4px",cursor:"pointer",
+                  color:templateDay===d?"#fff":T.textMuted,transition:"all 0.15s",position:"relative"
+                }}>
+                  <div style={{ fontSize:10,fontWeight:800,letterSpacing:"0.05em" }}>{d}</div>
+                  <div style={{ fontSize:14,margin:"4px 0 2px" }}>{gCount>0?"●".repeat(Math.min(gCount,3)):"○"}</div>
+                  <div style={{ fontSize:9,opacity:0.65 }}>{exCount}ex</div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
+            <div>
+              <div style={{ fontWeight:800,color:T.text,fontSize:17 }}>{FULL_DAYS[DAYS.indexOf(templateDay)]}</div>
+              <div style={{ fontSize:12,color:T.textMuted,marginTop:2 }}>{groups.length} group{groups.length!==1?"s":""} · {groups.reduce((s,g)=>s+g.exercises.length,0)} exercises</div>
+            </div>
+            <button onClick={()=>{setEditGroup(null);setShowEditor(true);}} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:9,color:T.textSec,padding:"8px 14px",cursor:"pointer",fontSize:13,fontWeight:700 }}>+ Group</button>
+          </div>
+        </>
+      )}
+
+      {groups.length===0&&selectedDay&&<div style={{ textAlign:"center",color:T.textMuted,padding:"36px 0",fontSize:14,borderRadius:14,border:`1px dashed ${T.border}` }}>Rest day 🛌<br/><span style={{ fontSize:12,opacity:0.7 }}>Tap "+ Group" to add exercises</span></div>}
+      {!selectedDay&&viewMode==="calendar"&&<div style={{ textAlign:"center",color:T.textMuted,padding:"36px 0",fontSize:14,borderRadius:14,border:`1px dashed ${T.border}` }}>No session templates yet<br/><span style={{ fontSize:12,opacity:0.7 }}>Switch to ⚙️ Template to create exercise groups</span></div>}
 
       {groups.map((group,gIdx)=>(
         <div key={group.id} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,marginBottom:10,borderLeft:`4px solid ${group.color}`,overflow:"hidden",boxShadow:T.shadow }}>

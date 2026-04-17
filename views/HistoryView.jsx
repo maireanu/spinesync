@@ -58,7 +58,7 @@ export default function HistoryView({ workoutLog, setWorkoutLog }) {
           <div style={{ display:"flex",alignItems:"center",gap:14 }}>
             <div style={{ width:8,height:8,borderRadius:"50%",background:T.accent,flexShrink:0 }} />
             <div style={{ flex:1 }}>
-              <div style={{ fontWeight:700,color:T.text,fontSize:14 }}>{log.sessionDay || "Workout"}</div>
+              <div style={{ fontWeight:700,color:T.text,fontSize:14 }}>{log.sessionNumber ? `Session ${log.sessionNumber}` : "Workout"}{log.sessionDay ? <span style={{ fontWeight:500,color:T.textMuted,fontSize:12,marginLeft:6 }}>{log.sessionDay} routine</span> : ""}</div>
               <div style={{ fontSize:12,color:T.textMuted,marginTop:1 }}>{log.exerciseCount} exercises · {log.groupCount} groups</div>
             </div>
             <div style={{ fontSize:12,color:T.textMuted,textAlign:"right" }}>
