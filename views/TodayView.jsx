@@ -6,7 +6,7 @@ import { Badge, WeightBadge, RestTimer, ExerciseDetailModal } from "../component
 import { GroupTimerBadge, GroupSessionTimer, TotalSessionTimer } from "../components/timers.jsx";
 
 export default function TodayView() {
-  const { schedule, exercises, workoutLog, setWorkoutLog } = useWorkout();
+  const { schedule, exercises, workoutLog, setWorkoutLog, sessionCycleStart } = useWorkout();
   const tISO = todayISO();
 
   // O(1) exercise lookup
@@ -18,10 +18,10 @@ export default function TodayView() {
   const exById = (id) => exMap.get(id) || null;
 
   // Build the ordered session pattern from the weekly schedule
-  const sessionPattern = buildSessionPattern(schedule);
+  const sessionPattern = useMemo(() => buildSessionPattern(schedule), [schedule]);
   const todayLog = (workoutLog || []).find(l => l.date === tISO);
   const completedCount = (workoutLog || []).filter(l => l.date !== tISO).length;
-  const autoIndex = sessionPattern.length > 0 ? completedCount % sessionPattern.length : 0;
+  const autoIndex = sessionPattern.length > 0 ? (completedCount + (sessionCycleStart || 0)) % sessionPattern.length : 0;
 
   // Manual session day override — cleared automatically when the date changes
   const [sessionOverride, setSessionOverride] = useState(() => {
@@ -153,6 +153,28 @@ export default function TodayView() {
     const key=`${gid}_${idx}`;
     setSetsLog(s=>({...s,[key]:0}));
   };
+
+  // Progressive overload hints: flag exercises whose weight hasn't changed in the last 3 sessions
+  const overloadHints = useMemo(() => {
+    const hints = new Set();
+    if (!workoutLog?.length || !groups.length) return hints;
+    const sorted = [...workoutLog].sort((a, b) => b.date.localeCompare(a.date));
+    for (const group of groups) {
+      for (const slot of group.exercises) {
+        const ex = exById(slot.exerciseId);
+        if (!ex?.weight || !ex.weightUnit || ex.weightUnit === "bodyweight" || ex.weightUnit === "band") continue;
+        const history = sorted
+          .map(l => l.exercises?.find(e => e.id === slot.exerciseId))
+          .filter(Boolean)
+          .slice(0, 3);
+        if (history.length >= 3 && history.every(h => h.weight === ex.weight)) {
+          hints.add(slot.exerciseId);
+        }
+      }
+    }
+    return hints;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workoutLog, groups]);
 
   const markDayDone = () => {
     const now = new Date().toISOString();
@@ -360,6 +382,11 @@ export default function TodayView() {
                             <WeightBadge weight={ex.weight} weightUnit={ex.weightUnit} />
                           </div>
                           <div style={{ fontSize:11,color:T.textMuted,marginBottom:8 }}>{ex.muscles.join(" · ")}</div>
+                          {overloadHints.has(slot.exerciseId) && (
+                            <div style={{ display:"inline-flex",alignItems:"center",gap:5,background:T.amber+"12",border:`1px solid ${T.amber}44`,borderRadius:8,padding:"4px 10px",fontSize:11,color:T.amber,fontWeight:700,marginBottom:8 }}>
+                              📈 Same weight for 3+ sessions — consider increasing
+                            </div>
+                          )}
                           <div style={{ background:T.surface,borderRadius:10,padding:"10px 12px",fontSize:12,color:T.textSec,lineHeight:1.7,borderLeft:`2px solid ${meta.color}55` }}>💡 {ex.tips}</div>
                         </div>
                       </div>
@@ -375,14 +402,14 @@ export default function TodayView() {
                               aria-pressed={si < doneS}
                               onClick={()=>{ if(si<doneS) removeSet(group.id,idx); else addSet(group.id,idx,ex); }}
                               onKeyDown={e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); if(si<doneS) removeSet(group.id,idx); else addSet(group.id,idx,ex); }}}
-                              style={{ width:32,height:32,borderRadius:"50%",background:si<doneS?group.color:T.surfaceAlt,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",transition:"all 0.2s",boxShadow:si<doneS?`0 0 8px ${group.color}44`:"none",fontSize:15,fontWeight:800,color:si<doneS?"#fff":T.textMuted }}>
+                              style={{ width:40,height:40,borderRadius:"50%",background:si<doneS?group.color:T.surfaceAlt,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",transition:"all 0.2s",boxShadow:si<doneS?`0 0 8px ${group.color}44`:"none",fontSize:15,fontWeight:800,color:si<doneS?"#fff":T.textMuted }}>
                               {si < doneS ? "✓" : si + 1}
                             </div>
                           ))}
                         </div>
                         {isDone
-                          ? <button onClick={()=>resetExercise(group.id,idx)} aria-label={`Undo ${ex.name}`} style={{ background:T.surface,border:`1px solid ${T.red}30`,borderRadius:9,color:T.red,padding:"6px 14px",cursor:"pointer",fontWeight:800,fontSize:13,transition:"all 0.2s" }}>↩ Undo</button>
-                          : <button onClick={()=>addSet(group.id,idx,ex)} aria-label={`Log set ${doneS+1} of ${ex.name}`} style={{ background:group.color,border:"none",borderRadius:9,color:"#fff",padding:"6px 14px",cursor:"pointer",fontWeight:800,fontSize:13,transition:"all 0.2s" }}>{`+Set ${doneS+1}`}</button>
+                          ? <button onClick={()=>resetExercise(group.id,idx)} aria-label={`Undo ${ex.name}`} style={{ background:T.surface,border:`1px solid ${T.red}30`,borderRadius:9,color:T.red,padding:"8px 14px",minHeight:40,cursor:"pointer",fontWeight:800,fontSize:13,transition:"all 0.2s" }}>↩ Undo</button>
+                          : <button onClick={()=>addSet(group.id,idx,ex)} aria-label={`Log set ${doneS+1} of ${ex.name}`} style={{ background:group.color,border:"none",borderRadius:9,color:"#fff",padding:"8px 14px",minHeight:40,cursor:"pointer",fontWeight:800,fontSize:13,transition:"all 0.2s" }}>{`+Set ${doneS+1}`}</button>
                         }
                       </div>
                     </div>

@@ -1,6 +1,7 @@
+import { useState, useEffect } from "react";
 import { Routes, Route, NavLink, useLocation } from "react-router-dom";
-import { House, CalendarDays, LibraryBig, Flame, Database } from "lucide-react";
-import { T } from "./constants.js";
+import { House, CalendarDays, LibraryBig, Flame, Database, Moon, Sun } from "lucide-react";
+import { T, LIGHT_VARS, DARK_VARS } from "./constants.js";
 import { computeStreak } from "./helpers.js";
 import { SpineSyncLogo } from "./components/ui.jsx";
 import { WorkoutProvider, useWorkout } from "./context.jsx";
@@ -24,8 +25,21 @@ function AppContent() {
   const streak = computeStreak(workoutLog);
   const activeNav = NAV.find(n => n.path !== "/" ? location.pathname.startsWith(n.path) : location.pathname === "/") || NAV[0];
 
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      const stored = localStorage.getItem("pt_dark_mode");
+      if (stored !== null) return stored === "1";
+      return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+    } catch { return false; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("pt_dark_mode", darkMode ? "1" : "0"); } catch {}
+  }, [darkMode]);
+
+  const themeVars = darkMode ? DARK_VARS : LIGHT_VARS;
+
   return (
-    <div style={{ minHeight:"100vh",background:T.bg,fontFamily:"'Manrope',system-ui,sans-serif",color:T.text }}>
+    <div style={{ minHeight:"100vh",background:T.bg,fontFamily:"'Manrope',system-ui,sans-serif",color:T.text,...themeVars }}>
       <style>{`
         *{box-sizing:border-box;margin:0;padding:0;}
         ::-webkit-scrollbar{width:4px;}
@@ -63,6 +77,14 @@ function AppContent() {
               <span style={{ color:T.amber,fontWeight:800,fontSize:13 }}>{streak} day streak</span>
             </div>
           )}
+          <button
+            onClick={() => setDarkMode(d => !d)}
+            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            title={darkMode ? "Light mode" : "Dark mode"}
+            style={{ background:"none",border:`1px solid ${T.border}`,borderRadius:8,color:T.textMuted,cursor:"pointer",padding:"5px 8px",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.15s" }}
+          >
+            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
         </div>
       </div>
 

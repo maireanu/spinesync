@@ -1,5 +1,41 @@
-import { useState, useEffect } from "react";
+import { Component, useState, useEffect } from "react";
 import { T, CATEGORY_META, DIFF_COLOR, LBL } from "../constants.js";
+
+// ─── ERROR BOUNDARY ───────────────────────────────────────────────────────────
+export class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  componentDidCatch(error, info) {
+    console.error("SpineSync error:", error, info.componentStack);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding:32, fontFamily:"system-ui,sans-serif" }}>
+          <div style={{ maxWidth:420, textAlign:"center" }}>
+            <div style={{ fontSize:52, marginBottom:16 }}>⚠️</div>
+            <div style={{ fontSize:20, fontWeight:800, color:"#1e2340", marginBottom:8 }}>Something went wrong</div>
+            <div style={{ fontSize:14, color:"#5f6681", marginBottom:24, lineHeight:1.6 }}>
+              {this.state.error.message || "An unexpected error occurred."}
+            </div>
+            <button
+              onClick={() => this.setState({ error: null })}
+              style={{ background:"#0d9488", border:"none", borderRadius:10, color:"#fff", padding:"10px 28px", cursor:"pointer", fontWeight:800, fontSize:14 }}
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ─── LOGO ────────────────────────────────────────────────────────────────────
 export function SpineSyncLogo({ size = 28 }) {
@@ -44,6 +80,12 @@ export function Modal({ open, onClose, title, children, wide }) {
     else document.body.style.overflow = "";
     return () => { document.body.style.overflow = ""; };
   }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [open, onClose]);
   if (!open) return null;
   return (
     <div style={{ position:"fixed",inset:0,background:T.modalOverlay,zIndex:300,display:"flex",alignItems:"flex-end",justifyContent:"center",padding:"0",backdropFilter:"blur(6px)" }} onClick={onClose}>
@@ -64,7 +106,6 @@ export function RestTimer({ onDismiss }) {
   const [secs, setSecs] = useState(60);
   const [running, setRunning] = useState(true);
   const [preset, setPreset] = useState(60);
-  const ref = { current: null };
 
   useEffect(() => {
     if (!running || secs <= 0) {

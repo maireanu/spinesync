@@ -6,8 +6,17 @@ import { useWorkout } from "../context.jsx";
 
 function ExerciseForm({ initial, onSave, onCancel }) {
   const [form,setForm] = useState(initial || { name:"",category:"physical_therapy",muscles:"",duration:"",difficulty:"Medium",weight:"",weightUnit:"bodyweight",notes:"",tips:"",image:"" });
-  const set = (k,v) => setForm(f=>({...f,[k]:v}));
+  const [urlError, setUrlError] = useState("");
+  const set = (k,v) => { setForm(f=>({...f,[k]:v})); if (k==="image") setUrlError(""); };
   const hasWeight = form.weightUnit !== "bodyweight" && form.weightUnit !== "band" && form.weightUnit !== "";
+
+  const validateAndSave = () => {
+    if (form.image && !form.image.startsWith("https://")) {
+      setUrlError("Image URL must start with https://");
+      return;
+    }
+    onSave({...form,muscles:typeof form.muscles==="string"?form.muscles.split(",").map(m=>m.trim()).filter(Boolean):form.muscles,id:form.id||(form.category.slice(0,2)+uid())});
+  };
 
   return (
     <div>
@@ -59,9 +68,10 @@ function ExerciseForm({ initial, onSave, onCancel }) {
 
       <label style={LBL}>Image / GIF URL (optional)</label>
       <input style={INP} value={form.image} onChange={e=>set("image",e.target.value)} placeholder="https://..." />
+      {urlError && <div style={{ fontSize:12,color:"#ef4444",marginBottom:8,marginTop:-6 }}>{urlError}</div>}
 
       <div style={{ display:"flex",gap:10,marginTop:6 }}>
-        <button onClick={()=>onSave({...form,muscles:typeof form.muscles==="string"?form.muscles.split(",").map(m=>m.trim()).filter(Boolean):form.muscles,id:form.id||(form.category.slice(0,2)+uid())})} style={{ flex:1,background:T.blue,border:"none",borderRadius:10,color:"#fff",padding:11,cursor:"pointer",fontWeight:800,fontSize:14 }}>Save</button>
+        <button onClick={validateAndSave} style={{ flex:1,background:T.blue,border:"none",borderRadius:10,color:"#fff",padding:11,cursor:"pointer",fontWeight:800,fontSize:14 }}>Save</button>
         <button onClick={onCancel} style={{ flex:1,background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,color:T.textSec,padding:11,cursor:"pointer",fontSize:14 }}>Cancel</button>
       </div>
     </div>

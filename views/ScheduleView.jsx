@@ -100,7 +100,7 @@ function GroupEditor({ group, exercises, onSave, onCancel }) {
 }
 
 export default function ScheduleView() {
-  const { schedule, setSchedule, exercises, workoutLog } = useWorkout();
+  const { schedule, setSchedule, exercises, workoutLog, sessionCycleStart, setSessionCycleStart } = useWorkout();
   const exMap = useMemo(() => {
     const m = new Map();
     for (const cat of Object.values(exercises)) for (const e of cat) m.set(e.id, e);
@@ -124,7 +124,7 @@ export default function ScheduleView() {
       const iso = localDateISO(i); // 0=today, 1=tomorrow, etc.
       const date = new Date(iso + "T12:00:00");
       const dayOfWeek = DAYS[(date.getDay() + 6) % 7];
-      const sessionIdx = sessionPattern.length > 0 ? (completed + i) % sessionPattern.length : -1;
+      const sessionIdx = sessionPattern.length > 0 ? (completed + (sessionCycleStart || 0) + i) % sessionPattern.length : -1;
       const session = sessionIdx >= 0 ? sessionPattern[sessionIdx] : null;
       const logEntry = (workoutLog || []).find(l => l.date === iso);
       return { date, iso, dayOfWeek, sessionIdx, session, isToday: i === 0, done: !!logEntry };
@@ -178,6 +178,37 @@ export default function ScheduleView() {
           </button>
         </div>
       </div>
+
+      {/* Cycle start selector — only shown when 2+ sessions */}
+      {sessionPattern.length > 1 && (
+        <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 14px",marginBottom:18,boxShadow:T.shadow }}>
+          <div style={{ fontSize:11,color:T.textMuted,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10 }}>Rotation cycle start</div>
+          <div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>
+            {sessionPattern.map((s, i) => {
+              const isActive = (sessionCycleStart || 0) === i;
+              return (
+                <button key={s.dayKey} onClick={() => setSessionCycleStart(i)} style={{
+                  background: isActive ? T.accent : T.surface,
+                  border: `1px solid ${isActive ? T.accent : T.border}`,
+                  borderRadius: 999,
+                  padding: "5px 13px",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: isActive ? "#fff" : T.textSec,
+                  transition: "all 0.15s",
+                  boxShadow: isActive ? `0 0 10px ${T.accent}44` : "none",
+                }}>
+                  S{i + 1} · {s.dayLabel}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize:11,color:T.textMuted,marginTop:8 }}>
+            Next session after a new workout will follow from the selected start point.
+          </div>
+        </div>
+      )}
 
       {viewMode === "calendar" ? (
         <>

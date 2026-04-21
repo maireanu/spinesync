@@ -32,9 +32,10 @@ export function WorkoutProvider({ children }) {
   const [exercises, setExercises, exercisesLoaded] = useIdbStorage("pt_exercises", EXERCISES);
   const [schedule, setSchedule, scheduleLoaded] = useIdbStorage("pt_schedule", SCHEDULE);
   const [workoutLog, setWorkoutLog, logLoaded] = useIdbStorage("pt_workout_log", []);
+  const [sessionCycleStart, setSessionCycleStart, cycleStartLoaded] = useIdbStorage("pt_session_cycle_start", 0);
 
   // Show a blank or loading screen until initial data drops in from IDB
-  const isReady = exercisesLoaded && scheduleLoaded && logLoaded;
+  const isReady = exercisesLoaded && scheduleLoaded && logLoaded && cycleStartLoaded;
 
   // Purge old localstorage state (Migrating from localStorage to IDB optionally, but just clearing old for now)
   useEffect(() => {
@@ -52,7 +53,7 @@ export function WorkoutProvider({ children }) {
   if (!isReady) return null;
 
   return (
-    <WorkoutContext.Provider value={{ exercises, setExercises, schedule, setSchedule, workoutLog, setWorkoutLog }}>
+    <WorkoutContext.Provider value={{ exercises, setExercises, schedule, setSchedule, workoutLog, setWorkoutLog, sessionCycleStart, setSessionCycleStart }}>
       {children}
     </WorkoutContext.Provider>
   );

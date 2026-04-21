@@ -62,7 +62,7 @@ export default function ImportExportView() {
   };
 
   const handleImport = () => {
-    if (importText.length > 2 * 1024 * 1024) { setStatus("❌ File too large (max 2 MB)."); return; }
+    if (importText.length > 512 * 1024) { setStatus("❌ File too large (max 512 KB)."); return; }
     let raw;
     try { raw = JSON.parse(importText); }
     catch { setStatus("❌ Invalid JSON."); return; }
