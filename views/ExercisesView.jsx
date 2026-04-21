@@ -2,6 +2,7 @@ import { useState } from "react";
 import { T, CATEGORY_META, DIFF_COLOR, WEIGHT_UNITS, INP, LBL } from "../constants.js";
 import { uid } from "../helpers.js";
 import { Badge, WeightBadge, Modal, ExerciseDetailModal } from "../components/ui.jsx";
+import { useWorkout } from "../context.jsx";
 
 function ExerciseForm({ initial, onSave, onCancel }) {
   const [form,setForm] = useState(initial || { name:"",category:"physical_therapy",muscles:"",duration:"",difficulty:"Medium",weight:"",weightUnit:"bodyweight",notes:"",tips:"",image:"" });
@@ -67,7 +68,8 @@ function ExerciseForm({ initial, onSave, onCancel }) {
   );
 }
 
-export default function ExercisesView({ exercises, setExercises }) {
+export default function ExercisesView() {
+  const { exercises, setExercises } = useWorkout();
   const [activeCategory,setActiveCategory] = useState("physical_therapy");
   const [showForm,setShowForm] = useState(false);
   const [editingEx,setEditingEx] = useState(null);

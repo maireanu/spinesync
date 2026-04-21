@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { T, LBL } from "../constants.js";
+import { useWorkout } from "../context.jsx";
 
-export default function ImportExportView({ exercises, setExercises, schedule, setSchedule, workoutLog, setWorkoutLog }) {
+export default function ImportExportView() {
+  const { exercises, setExercises, schedule, setSchedule, workoutLog, setWorkoutLog } = useWorkout();
   const [importText,setImportText] = useState("");
   const [status,setStatus] = useState("");
+  const [lastBackup, setLastBackup] = useState(() => { try { return localStorage.getItem("pt_last_backup"); } catch { return null; } });
+  const daysSinceBackup = lastBackup ? Math.floor((Date.now() - new Date(lastBackup).getTime()) / 86400000) : null;
+  const showBackupWarning = daysSinceBackup === null || daysSinceBackup > 30;
 
   const handleExport = () => {
     const data={ exercises, schedule, workoutLog, version:"3.0", exported:new Date().toISOString() };
@@ -11,10 +16,14 @@ export default function ImportExportView({ exercises, setExercises, schedule, se
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a"); a.href=url; a.download="pt-exercises.json"; a.click();
     URL.revokeObjectURL(url);
+    const now = new Date().toISOString();
+    try { localStorage.setItem("pt_last_backup", now); } catch {}
+    setLastBackup(now);
     setStatus("✅ Downloaded!");
   };
 
   const handleImport = () => {
+    if (importText.length > 2 * 1024 * 1024) { setStatus("❌ File too large (max 2 MB)."); return; }
     try {
       const data=JSON.parse(importText);
       // Validate shape
@@ -52,7 +61,18 @@ export default function ImportExportView({ exercises, setExercises, schedule, se
   return (
     <div>
       <h2 style={{ margin:"0 0 6px",fontSize:24,color:T.text,fontWeight:900,letterSpacing:"-0.5px" }}>Import / Export</h2>
-      <p style={{ color:T.textMuted,fontSize:14,marginBottom:22,lineHeight:1.6 }}>Human-readable JSON. Edit in any text editor, store on Google Drive, share with your therapist.</p>
+      <p style={{ color:T.textMuted,fontSize:14,marginBottom:14,lineHeight:1.6 }}>Human-readable JSON. Edit in any text editor, store on Google Drive, share with your therapist.</p>
+
+      {showBackupWarning && (
+        <div style={{ background:T.amber+"14",border:`1px solid ${T.amber}44`,borderRadius:12,padding:"10px 14px",marginBottom:14,fontSize:13,color:T.amber,fontWeight:600 }}>
+          ⚠️ {lastBackup ? `Last backup was ${daysSinceBackup} day${daysSinceBackup!==1?"s":""} ago.` : "No backup found."} Download a copy to keep your data safe.
+        </div>
+      )}
+      {!showBackupWarning && lastBackup && (
+        <div style={{ fontSize:12,color:T.textMuted,marginBottom:14 }}>
+          ✅ Last backup: {new Date(lastBackup).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
+        </div>
+      )}
 
       <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:18,marginBottom:12,boxShadow:T.shadow }}>
         <h3 style={{ margin:"0 0 8px",color:T.accent,fontSize:15,fontWeight:800 }}>📤 Export</h3>

@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { T, DAYS, FULL_DAYS, GROUP_COLORS, CATEGORY_META, INP, LBL } from "../constants.js";
 import { uid, todayKey, todayISO, buildSessionPattern } from "../helpers.js";
+import { useWorkout } from "../context.jsx";
 import { Modal } from "../components/ui.jsx";
 
 function GroupEditor({ group, exercises, onSave, onCancel }) {
@@ -24,7 +26,12 @@ function GroupEditor({ group, exercises, onSave, onCancel }) {
     setSlots(s=>[...s,{category:addCat,exerciseId:exId}]);
   };
   const remove = idx => setSlots(s=>s.filter((_,i)=>i!==idx));
-  const move = (idx,dir) => setSlots(s=>{ const a=[...s],to=idx+dir; if(to<0||to>=a.length)return a; [a[idx],a[to]]=[a[to],a[idx]]; return a; });
+  const onDragEndSlots = (result) => {
+    if (!result.destination) return;
+    const from = result.source.index, to = result.destination.index;
+    if (from === to) return;
+    setSlots(s => { const a=[...s]; const [item]=a.splice(from,1); a.splice(to,0,item); return a; });
+  };
 
   return (
     <div>
@@ -41,22 +48,34 @@ function GroupEditor({ group, exercises, onSave, onCancel }) {
       <label style={LBL}>Exercises ({slots.length})</label>
       <div style={{ background:T.surface,borderRadius:11,marginBottom:12,overflow:"hidden",border:`1px solid ${T.border}` }}>
         {slots.length===0&&<div style={{ padding:14,fontSize:13,color:T.textMuted }}>No exercises yet.</div>}
-        {slots.map((slot,idx)=>{
-          const ex=exById(slot.exerciseId);
-          const meta=CATEGORY_META[slot.category];
-          return (
-            <div key={idx} style={{ display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderBottom:idx<slots.length-1?`1px solid ${T.border}`:"none" }}>
-              <span style={{ fontSize:16 }}>{meta.icon}</span>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:13,fontWeight:700,color:T.text }}>{ex?.name||slot.exerciseId}</div>
-                <div style={{ fontSize:11,color:T.textMuted }}>{meta.label}{ex?.weight?` · ${ex.weight}${ex.weightUnit}`:""}</div>
+        <DragDropContext onDragEnd={onDragEndSlots}>
+          <Droppable droppableId="editor-slots">
+            {(prov) => (
+              <div ref={prov.innerRef} {...prov.droppableProps}>
+                {slots.map((slot,idx)=>{
+                  const ex=exById(slot.exerciseId);
+                  const meta=CATEGORY_META[slot.category];
+                  return (
+                    <Draggable key={`${slot.exerciseId}-${idx}`} draggableId={`slot-${idx}-${slot.exerciseId}`} index={idx}>
+                      {(drag, snap) => (
+                        <div ref={drag.innerRef} {...drag.draggableProps} style={{ display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderBottom:idx<slots.length-1?`1px solid ${T.border}`:"none",background:snap.isDragging?T.surfaceAlt:"transparent",...drag.draggableProps.style }}>
+                          <div {...drag.dragHandleProps} style={{ color:T.textMuted,cursor:"grab",fontSize:16,lineHeight:1,flexShrink:0 }}>⠿</div>
+                          <span style={{ fontSize:16 }}>{meta.icon}</span>
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontSize:13,fontWeight:700,color:T.text }}>{ex?.name||slot.exerciseId}</div>
+                            <div style={{ fontSize:11,color:T.textMuted }}>{meta.label}{ex?.weight?` · ${ex.weight}${ex.weightUnit}`:""}</div>
+                          </div>
+                          <button onClick={()=>remove(idx)} style={{ background:"none",border:"none",color:T.red,cursor:"pointer",fontSize:19,lineHeight:1 }}>×</button>
+                        </div>
+                      )}
+                    </Draggable>
+                  );
+                })}
+                {prov.placeholder}
               </div>
-              <button onClick={()=>move(idx,-1)} disabled={idx===0} style={{ background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:14 }}>↑</button>
-              <button onClick={()=>move(idx,1)} disabled={idx===slots.length-1} style={{ background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:14 }}>↓</button>
-              <button onClick={()=>remove(idx)} style={{ background:"none",border:"none",color:T.red,cursor:"pointer",fontSize:19,lineHeight:1 }}>×</button>
-            </div>
-          );
-        })}
+            )}
+          </Droppable>
+        </DragDropContext>
       </div>
 
       <div style={{ background:T.surface,border:`1px dashed ${T.border}`,borderRadius:11,padding:14,marginBottom:18 }}>
@@ -80,7 +99,8 @@ function GroupEditor({ group, exercises, onSave, onCancel }) {
   );
 }
 
-export default function ScheduleView({ schedule, setSchedule, exercises, workoutLog }) {
+export default function ScheduleView() {
+  const { schedule, setSchedule, exercises, workoutLog } = useWorkout();
   const exMap = useMemo(() => {
     const m = new Map();
     for (const cat of Object.values(exercises)) for (const e of cat) m.set(e.id, e);
@@ -133,13 +153,15 @@ export default function ScheduleView({ schedule, setSchedule, exercises, workout
     if (!window.confirm(`Delete group "${group?.name || 'this group'}"?`)) return;
     setSchedule(prev=>({...prev,[selectedDay]:(prev[selectedDay]||[]).filter(g=>g.id!==gid)}));
   };
-  const move = (idx,dir) => {
-    if (!selectedDay) return;
-    setSchedule(prev=>{
-      const day=[...(prev[selectedDay]||[])],to=idx+dir;
-      if(to<0||to>=day.length)return prev;
-      [day[idx],day[to]]=[day[to],day[idx]];
-      return {...prev,[selectedDay]:day};
+  const onDragEndGroups = (result) => {
+    if (!result.destination || !selectedDay) return;
+    const from = result.source.index, to = result.destination.index;
+    if (from === to) return;
+    setSchedule(prev => {
+      const day = [...(prev[selectedDay] || [])];
+      const [item] = day.splice(from, 1);
+      day.splice(to, 0, item);
+      return { ...prev, [selectedDay]: day };
     });
   };
 
@@ -248,32 +270,44 @@ export default function ScheduleView({ schedule, setSchedule, exercises, workout
       {groups.length===0&&selectedDay&&<div style={{ textAlign:"center",color:T.textMuted,padding:"36px 0",fontSize:14,borderRadius:14,border:`1px dashed ${T.border}` }}>Rest day 🛌<br/><span style={{ fontSize:12,opacity:0.7 }}>Tap "+ Group" to add exercises</span></div>}
       {!selectedDay&&viewMode==="calendar"&&<div style={{ textAlign:"center",color:T.textMuted,padding:"36px 0",fontSize:14,borderRadius:14,border:`1px dashed ${T.border}` }}>No session templates yet<br/><span style={{ fontSize:12,opacity:0.7 }}>Switch to ⚙️ Template to create exercise groups</span></div>}
 
-      {groups.map((group,gIdx)=>(
-        <div key={group.id} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,marginBottom:10,borderLeft:`4px solid ${group.color}`,overflow:"hidden",boxShadow:T.shadow }}>
-          <div style={{ display:"flex",alignItems:"center",gap:10,padding:"12px 15px" }}>
-            <div style={{ width:10,height:10,borderRadius:"50%",background:group.color,flexShrink:0,boxShadow:`0 0 6px ${group.color}55` }} />
-            <div style={{ flex:1 }}>
-              <div style={{ fontWeight:800,color:T.text,fontSize:14 }}>{group.name}</div>
-              <div style={{ fontSize:11,color:T.textMuted }}>{group.exercises.length} exercise{group.exercises.length!==1?"s":""}</div>
+      <DragDropContext onDragEnd={onDragEndGroups}>
+        <Droppable droppableId="schedule-groups">
+          {(prov) => (
+            <div ref={prov.innerRef} {...prov.droppableProps}>
+              {groups.map((group,gIdx)=>(
+                <Draggable key={group.id} draggableId={group.id} index={gIdx}>
+                  {(drag, snap) => (
+                    <div ref={drag.innerRef} {...drag.draggableProps} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,marginBottom:10,borderLeft:`4px solid ${group.color}`,overflow:"hidden",boxShadow:snap.isDragging?T.shadowMd:T.shadow,...drag.draggableProps.style }}>
+                      <div style={{ display:"flex",alignItems:"center",gap:10,padding:"12px 15px" }}>
+                        <div {...drag.dragHandleProps} style={{ color:T.textMuted,cursor:"grab",fontSize:18,lineHeight:1,flexShrink:0,padding:"0 2px" }}>⠿</div>
+                        <div style={{ width:10,height:10,borderRadius:"50%",background:group.color,flexShrink:0,boxShadow:`0 0 6px ${group.color}55` }} />
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontWeight:800,color:T.text,fontSize:14 }}>{group.name}</div>
+                          <div style={{ fontSize:11,color:T.textMuted }}>{group.exercises.length} exercise{group.exercises.length!==1?"s":""}</div>
+                        </div>
+                        <button onClick={()=>{setEditGroup(group);setShowEditor(true);}} style={{ background:T.surface,border:"none",borderRadius:7,color:T.textSec,cursor:"pointer",padding:"5px 10px",fontSize:12,fontWeight:600 }}>✏️ Edit</button>
+                        <button onClick={()=>del(group.id)} style={{ background:"none",border:"none",color:T.red,cursor:"pointer",fontSize:20,lineHeight:1,padding:"0 2px" }}>×</button>
+                      </div>
+                      <div style={{ padding:"0 15px 12px",display:"flex",flexWrap:"wrap",gap:6 }}>
+                        {group.exercises.map((slot,i)=>{
+                          const ex=exById(slot.exerciseId);
+                          const meta=CATEGORY_META[slot.category];
+                          return (
+                            <div key={i} style={{ background:T.surface,border:`1px solid ${meta.color}22`,borderRadius:8,padding:"4px 10px",fontSize:12,color:T.textSec,display:"flex",alignItems:"center",gap:5 }}>
+                              {meta.icon} {ex?.name||"?"}{ex?.weight?<span style={{ color:T.amber+"88",fontSize:10 }}> {ex.weight}{ex.weightUnit}</span>:null}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {prov.placeholder}
             </div>
-            <button onClick={()=>move(gIdx,-1)} disabled={gIdx===0} style={{ background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:16 }}>↑</button>
-            <button onClick={()=>move(gIdx,1)} disabled={gIdx===groups.length-1} style={{ background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:16 }}>↓</button>
-            <button onClick={()=>{setEditGroup(group);setShowEditor(true);}} style={{ background:T.surface,border:"none",borderRadius:7,color:T.textSec,cursor:"pointer",padding:"5px 10px",fontSize:12,fontWeight:600 }}>✏️ Edit</button>
-            <button onClick={()=>del(group.id)} style={{ background:"none",border:"none",color:T.red,cursor:"pointer",fontSize:20,lineHeight:1,padding:"0 2px" }}>×</button>
-          </div>
-          <div style={{ padding:"0 15px 12px",display:"flex",flexWrap:"wrap",gap:6 }}>
-            {group.exercises.map((slot,i)=>{
-              const ex=exById(slot.exerciseId);
-              const meta=CATEGORY_META[slot.category];
-              return (
-                <div key={i} style={{ background:T.surface,border:`1px solid ${meta.color}22`,borderRadius:8,padding:"4px 10px",fontSize:12,color:T.textSec,display:"flex",alignItems:"center",gap:5 }}>
-                  {meta.icon} {ex?.name||"?"}{ex?.weight?<span style={{ color:T.amber+"88",fontSize:10 }}> {ex.weight}{ex.weightUnit}</span>:null}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+          )}
+        </Droppable>
+      </DragDropContext>
 
       <Modal open={showEditor} onClose={()=>setShowEditor(false)} title={editGroup?`Edit: ${editGroup.name}`:"New Exercise Group"} wide>
         <GroupEditor group={editGroup} exercises={exercises} onSave={handleSave} onCancel={()=>setShowEditor(false)} />

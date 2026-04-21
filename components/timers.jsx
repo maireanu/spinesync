@@ -1,5 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { T } from "../constants.js";
+
+function playCompletionBeep() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1320, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.6);
+    try { if (typeof navigator.vibrate === "function") navigator.vibrate([150, 80, 150]); } catch {}
+  } catch {}
+}
 
 export function formatElapsed(ms) {
   if (ms < 0) ms = 0;
@@ -64,6 +84,12 @@ export function TotalSessionTimer({ groupTimers }) {
     return sum + Math.max(0, end - new Date(t.startedAt).getTime());
   }, 0);
   const allDone = entries.length > 0 && entries.every(t => t.endedAt);
+
+  const prevAllDone = useRef(false);
+  useEffect(() => {
+    if (allDone && !prevAllDone.current) playCompletionBeep();
+    prevAllDone.current = allDone;
+  }, [allDone]);
 
   return (
     <div style={{ display:"flex",alignItems:"center",gap:10,background:T.card,border:`1px solid ${allDone?T.amber+"30":T.accent+"30"}`,borderRadius:14,padding:"11px 16px",marginBottom:22,boxShadow:T.shadow }}>

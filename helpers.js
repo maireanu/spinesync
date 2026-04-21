@@ -15,7 +15,7 @@ export function todayKey() {
   return DAYS[d === 0 ? 6 : d - 1];
 }
 
-export function todayISO() { return new Date().toISOString().slice(0,10); }
+export function todayISO() { return new Date().toLocaleDateString("en-CA"); }
 
 export function parseSets(duration) {
   const m = duration.match(/^(\d+)\s*[×x]/);

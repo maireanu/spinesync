@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { T, CATEGORY_META } from "../constants.js";
 import { todayISO, parseSets, buildSessionPattern } from "../helpers.js";
+import { useWorkout } from "../context.jsx";
 import { Badge, WeightBadge, RestTimer, ExerciseDetailModal } from "../components/ui.jsx";
 import { GroupTimerBadge, GroupSessionTimer, TotalSessionTimer } from "../components/timers.jsx";
 
-export default function TodayView({ schedule, exercises, workoutLog, setWorkoutLog }) {
+export default function TodayView() {
+  const { schedule, exercises, workoutLog, setWorkoutLog } = useWorkout();
   const tISO = todayISO();
 
   // O(1) exercise lookup
@@ -21,9 +23,16 @@ export default function TodayView({ schedule, exercises, workoutLog, setWorkoutL
   const completedCount = (workoutLog || []).filter(l => l.date !== tISO).length;
   const autoIndex = sessionPattern.length > 0 ? completedCount % sessionPattern.length : 0;
 
-  // Manual session day override
+  // Manual session day override — cleared automatically when the date changes
   const [sessionOverride, setSessionOverride] = useState(() => {
-    try { const s = localStorage.getItem("pt_session_override"); return s ? JSON.parse(s) : null; } catch { return null; }
+    try {
+      const s = localStorage.getItem("pt_session_override");
+      if (!s) return null;
+      const stored = JSON.parse(s);
+      // New format: { index, date } — discard if set on a different day
+      if (typeof stored === "object" && stored !== null && stored.date === tISO) return stored.index;
+      return null;
+    } catch { return null; }
   });
   const [showDayPicker, setShowDayPicker] = useState(false);
   const dayPickerRef = useRef(null);
@@ -35,10 +44,10 @@ export default function TodayView({ schedule, exercises, workoutLog, setWorkoutL
   }, [showDayPicker]);
   useEffect(() => {
     try {
-      if (sessionOverride !== null) localStorage.setItem("pt_session_override", JSON.stringify(sessionOverride));
+      if (sessionOverride !== null) localStorage.setItem("pt_session_override", JSON.stringify({ index: sessionOverride, date: tISO }));
       else localStorage.removeItem("pt_session_override");
     } catch {}
-  }, [sessionOverride]);
+  }, [sessionOverride, tISO]);
 
   const activeIndex = sessionOverride !== null && sessionOverride >= 0 && sessionOverride < sessionPattern.length
     ? sessionOverride : autoIndex;
@@ -171,6 +180,14 @@ export default function TodayView({ schedule, exercises, workoutLog, setWorkoutL
     setTimers({});
     setWorkoutLog(prev => (prev||[]).filter(l => l.date !== tISO));
   };
+
+  // Auto-save session when all exercises are completed
+  useEffect(() => {
+    if (doneEx > 0 && doneEx === totalEx && !todayLog) {
+      markDayDone();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doneEx, totalEx]);
 
   const pct = totalSets>0 ? (doneSets/totalSets)*100 : 0;
   const today = new Date();

@@ -1,13 +1,25 @@
+import { useMemo, useState } from "react";
 import { T, DAYS, LBL } from "../constants.js";
 import { computeStreak, todayISO } from "../helpers.js";
+import { useWorkout } from "../context.jsx";
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
-export default function HistoryView({ workoutLog, setWorkoutLog }) {
+export default function HistoryView() {
+  const { workoutLog, setWorkoutLog } = useWorkout();
   const logs = (workoutLog||[]).slice().reverse();
+  const [confirmDelete, setConfirmDelete] = useState(null);
   const deleteEntry = (date) => {
-    if (!window.confirm(`Delete the session from ${date}?`)) return;
     setWorkoutLog(prev => (prev||[]).filter(l => l.date !== date));
+    setConfirmDelete(null);
   };
   const streak = computeStreak(workoutLog);
+
+  const chartData = useMemo(() => Array.from({ length: 14 }, (_, i) => {
+    const date = new Date(Date.now() - (13 - i) * 86400000);
+    const iso = date.toISOString().slice(0, 10);
+    const log = (workoutLog || []).find(l => l.date === iso);
+    return { label: date.toLocaleDateString("en-US", { weekday: "short" }).slice(0, 2), day: date.getDate(), exercises: log?.exerciseCount || 0, done: !!log };
+  }), [workoutLog]);
 
   return (
     <div>
@@ -23,6 +35,24 @@ export default function HistoryView({ workoutLog, setWorkoutLog }) {
         <div style={{ flex:1,textAlign:"right" }}>
           <div style={{ fontSize:13,color:T.textMuted }}>{logs.length} total sessions</div>
         </div>
+      </div>
+
+      {/* Activity chart - last 14 days */}
+      <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:18,marginBottom:20,boxShadow:T.shadow }}>
+        <div style={LBL}>Last 14 Days — Exercises Completed</div>
+        <ResponsiveContainer width="100%" height={90}>
+          <BarChart data={chartData} barCategoryGap="20%" margin={{ top:6,right:4,left:-30,bottom:0 }}>
+            <XAxis dataKey="label" tick={{ fontSize:9,fill:T.textMuted }} axisLine={false} tickLine={false} />
+            <Tooltip
+              contentStyle={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:8,fontSize:12,padding:"6px 10px" }}
+              formatter={(v) => [v, "exercises"]}
+              labelFormatter={(_, payload) => payload?.[0]?.payload ? `Day ${payload[0].payload.day}` : ""}
+            />
+            <Bar dataKey="exercises" radius={[3,3,0,0]}>
+              {chartData.map((entry,i) => <Cell key={i} fill={entry.done ? T.accent : T.border} />)}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
       {/* Calendar grid - last 28 days */}
@@ -62,12 +92,19 @@ export default function HistoryView({ workoutLog, setWorkoutLog }) {
               <div style={{ fontSize:12,color:T.textMuted,marginTop:1 }}>{log.exerciseCount} exercises · {log.groupCount} groups</div>
             </div>
             <div style={{ fontSize:12,color:T.textMuted,textAlign:"right" }}>
-              {new Date(log.date).toLocaleDateString("en-US",{month:"short",day:"numeric"})}
+              {new Date(log.date + "T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})}
             </div>
-            <button onClick={()=>deleteEntry(log.date)} title="Delete entry" style={{ background:"none",border:"none",color:T.red+"66",cursor:"pointer",fontSize:16,lineHeight:1,padding:"2px 4px",flexShrink:0,transition:"color 0.15s" }}
+            {confirmDelete === log.date ? (
+              <div style={{ display:"flex",gap:4,alignItems:"center",flexShrink:0 }}>
+                <button onClick={()=>deleteEntry(log.date)} style={{ background:T.red,border:"none",borderRadius:6,color:"#fff",padding:"3px 9px",cursor:"pointer",fontSize:11,fontWeight:700 }}>Delete</button>
+                <button onClick={()=>setConfirmDelete(null)} style={{ background:"none",border:`1px solid ${T.border}`,borderRadius:6,color:T.textMuted,padding:"3px 9px",cursor:"pointer",fontSize:11 }}>Cancel</button>
+              </div>
+            ) : (
+            <button onClick={()=>setConfirmDelete(log.date)} title="Delete entry" style={{ background:"none",border:"none",color:T.red+"66",cursor:"pointer",fontSize:16,lineHeight:1,padding:"2px 4px",flexShrink:0,transition:"color 0.15s" }}
               onMouseOver={e=>e.currentTarget.style.color=T.red}
               onMouseOut={e=>e.currentTarget.style.color=T.red+"66"}
             >×</button>
+            )}
           </div>
           {log.exercises && log.exercises.length > 0 && (
             <div style={{ marginTop:8,paddingLeft:22,display:"flex",flexWrap:"wrap",gap:4 }}>
