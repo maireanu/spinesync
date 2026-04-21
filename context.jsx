@@ -1,29 +1,42 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { get, set, del } from "idb-keyval";
 import { EXERCISES, SCHEDULE } from "./exercises-data.js";
 
 const WorkoutContext = createContext(null);
 
-function useLocalStorage(key, defaultValue) {
-  const [value, setValue] = useState(() => {
-    try {
-      const stored = localStorage.getItem(key);
-      return stored ? JSON.parse(stored) : defaultValue;
-    } catch {
-      return defaultValue;
-    }
-  });
+function useIdbStorage(key, defaultValue) {
+  const [value, setValue] = useState(defaultValue);
+  const [isLoaded, setIsLoaded] = useState(false);
+
   useEffect(() => {
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
-  }, [key, value]);
-  return [value, setValue];
+    get(key).then((stored) => {
+      if (stored !== undefined) {
+        setValue(stored);
+      }
+      setIsLoaded(true);
+    }).catch(() => {
+      setIsLoaded(true);
+    });
+  }, [key]);
+
+  const updateValue = (newValue) => {
+    const val = typeof newValue === "function" ? newValue(value) : newValue;
+    setValue(val);
+    set(key, val).catch(console.error);
+  };
+
+  return [value, updateValue, isLoaded];
 }
 
 export function WorkoutProvider({ children }) {
-  const [exercises, setExercises] = useLocalStorage("pt_exercises", EXERCISES);
-  const [schedule, setSchedule] = useLocalStorage("pt_schedule", SCHEDULE);
-  const [workoutLog, setWorkoutLog] = useLocalStorage("pt_workout_log", []);
+  const [exercises, setExercises, exercisesLoaded] = useIdbStorage("pt_exercises", EXERCISES);
+  const [schedule, setSchedule, scheduleLoaded] = useIdbStorage("pt_schedule", SCHEDULE);
+  const [workoutLog, setWorkoutLog, logLoaded] = useIdbStorage("pt_workout_log", []);
 
-  // Purge per-day localStorage keys (pt_sets_* and pt_timers_*) older than 7 days
+  // Show a blank or loading screen until initial data drops in from IDB
+  const isReady = exercisesLoaded && scheduleLoaded && logLoaded;
+
+  // Purge old localstorage state (Migrating from localStorage to IDB optionally, but just clearing old for now)
   useEffect(() => {
     try {
       const cutoff = new Date(Date.now() - 7 * 86400000).toLocaleDateString("en-CA");
@@ -35,6 +48,8 @@ export function WorkoutProvider({ children }) {
       }
     } catch {}
   }, []);
+
+  if (!isReady) return null;
 
   return (
     <WorkoutContext.Provider value={{ exercises, setExercises, schedule, setSchedule, workoutLog, setWorkoutLog }}>

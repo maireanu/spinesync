@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Routes, Route, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { Routes, Route, NavLink, useLocation } from "react-router-dom";
+import { House, CalendarTags, LibraryBig, Flame, Database } from "lucide-react";
 import { T } from "./constants.js";
 import { computeStreak } from "./helpers.js";
 import { SpineSyncLogo } from "./components/ui.jsx";
@@ -11,11 +11,11 @@ import HistoryView from "./views/HistoryView.jsx";
 import ImportExportView from "./views/ImportExportView.jsx";
 
 const NAV = [
-  { path: "/",         label: "Today",    icon: "🏠" },
-  { path: "/schedule", label: "Schedule", icon: "📅" },
-  { path: "/library",  label: "Library",  icon: "📚" },
-  { path: "/history",  label: "History",  icon: "🔥" },
-  { path: "/data",     label: "Data",     icon: "💾" },
+  { path: "/",         label: "Today",    icon: <House size={20} /> },
+  { path: "/schedule", label: "Schedule", icon: <CalendarTags size={20} /> },
+  { path: "/library",  label: "Library",  icon: <LibraryBig size={20} /> },
+  { path: "/history",  label: "History",  icon: <Flame size={20} /> },
+  { path: "/data",     label: "Data",     icon: <Database size={20} /> },
 ];
 
 function AppContent() {
@@ -59,7 +59,7 @@ function AppContent() {
           </div>
           {streak > 0 && (
             <div style={{ display:"flex",alignItems:"center",gap:5,background:"rgba(245,158,11,0.1)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:999,padding:"5px 13px" }} role="status" aria-label={`${streak} day streak`}>
-              <span style={{ fontSize:13 }} aria-hidden="true">🔥</span>
+              <Flame size={14} color={T.amber} style={{ marginBottom: 1 }} aria-hidden="true" />
               <span style={{ color:T.amber,fontWeight:800,fontSize:13 }}>{streak} day streak</span>
             </div>
           )}
@@ -74,7 +74,7 @@ function AppContent() {
             return (
               <NavLink key={item.path} to={item.path} style={{ display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderRadius:12,textDecoration:"none",background:isActive?T.accent+"14":"transparent",color:isActive?T.accent:T.textSec,fontWeight:700,fontSize:14,transition:"all 0.15s" }}
                 aria-current={isActive?"page":undefined}>
-                <span style={{ fontSize:18 }} aria-hidden="true">{item.icon}</span>
+                <span aria-hidden="true" style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>{item.icon}</span>
                 {item.label}
               </NavLink>
             );
@@ -100,10 +100,10 @@ function AppContent() {
           {NAV.map(item => {
             const isActive = item.path !== "/" ? location.pathname.startsWith(item.path) : location.pathname === "/";
             return (
-              <NavLink key={item.path} to={item.path} style={{ flex:1,background:isActive?T.accent:"transparent",borderRadius:12,padding:"8px 4px",display:"flex",flexDirection:"column",alignItems:"center",gap:2,transition:"all 0.2s ease",textDecoration:"none" }}
+              <NavLink key={item.path} to={item.path} style={{ flex:1,background:isActive?T.accent:"transparent",borderRadius:12,padding:"8px 4px",display:"flex",flexDirection:"column",alignItems:"center",gap:4,transition:"all 0.2s ease",textDecoration:"none",color:isActive?"#fff":T.textMuted }}
                 aria-label={item.label} aria-current={isActive?"page":undefined}>
-                <span style={{ fontSize:16,lineHeight:1,opacity:isActive?1:0.5,filter:isActive?"brightness(0) invert(1)":"none" }} aria-hidden="true">{item.icon}</span>
-                <span style={{ fontSize:10,fontWeight:700,color:isActive?"#fff":T.textMuted,letterSpacing:"0.02em" }}>{item.label}</span>
+                <span style={{ display:"flex",alignItems:"center",justifyContent:"center" }} aria-hidden="true">{item.icon}</span>
+                <span style={{ fontSize:10,fontWeight:700,letterSpacing:"0.02em" }}>{item.label}</span>
               </NavLink>
             );
           })}
