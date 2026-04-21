@@ -1,5 +1,5 @@
 import { Routes, Route, NavLink, useLocation } from "react-router-dom";
-import { House, CalendarTags, LibraryBig, Flame, Database } from "lucide-react";
+import { House, CalendarDays, LibraryBig, Flame, Database } from "lucide-react";
 import { T } from "./constants.js";
 import { computeStreak } from "./helpers.js";
 import { SpineSyncLogo } from "./components/ui.jsx";
@@ -12,7 +12,7 @@ import ImportExportView from "./views/ImportExportView.jsx";
 
 const NAV = [
   { path: "/",         label: "Today",    icon: <House size={20} /> },
-  { path: "/schedule", label: "Schedule", icon: <CalendarTags size={20} /> },
+  { path: "/schedule", label: "Schedule", icon: <CalendarDays size={20} /> },
   { path: "/library",  label: "Library",  icon: <LibraryBig size={20} /> },
   { path: "/history",  label: "History",  icon: <Flame size={20} /> },
   { path: "/data",     label: "Data",     icon: <Database size={20} /> },
