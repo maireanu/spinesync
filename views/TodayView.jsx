@@ -136,6 +136,12 @@ export default function TodayView() {
     const cur=setsLog[key]||0;
     if(cur<total){
       setSetsLog(s=>({...s,[key]:cur+1}));
+      // Haptic feedback: short tap per set, double tap when exercise done
+      try {
+        if (typeof navigator.vibrate === "function") {
+          navigator.vibrate(cur + 1 >= total ? [80, 40, 80] : [40]);
+        }
+      } catch {}
       if(cur+1<total) setShowTimer(true);
     }
   };
@@ -344,6 +350,7 @@ export default function TodayView() {
                             <span style={{ fontSize:15 }}>{meta.icon}</span>
                             <span style={{ fontWeight:800,color:T.text,fontSize:14,textDecoration:isDone?"line-through":"none" }}>{ex.name}</span>
                             <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name + ' exercise how to')}`} target="_blank" rel="noopener noreferrer"
+                              aria-label={`Watch ${ex.name} on YouTube`}
                               style={{ display:"inline-flex",alignItems:"center",gap:3,fontSize:10,fontWeight:700,color:T.red,textDecoration:"none",background:T.red+"14",border:`1px solid ${T.red}22`,borderRadius:20,padding:"2px 8px",flexShrink:0 }}>
                               ▶ YT
                             </a>
@@ -360,17 +367,22 @@ export default function TodayView() {
                         <span style={{ fontSize:11,color:T.textMuted,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase",flex:1 }}>
                           Sets: {doneS}/{totalS}
                         </span>
-                        <div style={{ display:"flex",gap:6 }}>
+                        <div style={{ display:"flex",gap:6 }} role="group" aria-label={`Sets for ${ex.name}`}>
                           {Array.from({length:totalS}).map((_,si)=>(
-                            <div key={si} onClick={()=>{ if(si<doneS) removeSet(group.id,idx); else addSet(group.id,idx,ex); }}
+                            <div key={si}
+                              role="button" tabIndex={0}
+                              aria-label={si < doneS ? `Undo set ${si+1} of ${ex.name}` : `Log set ${si+1} of ${ex.name}`}
+                              aria-pressed={si < doneS}
+                              onClick={()=>{ if(si<doneS) removeSet(group.id,idx); else addSet(group.id,idx,ex); }}
+                              onKeyDown={e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); if(si<doneS) removeSet(group.id,idx); else addSet(group.id,idx,ex); }}}
                               style={{ width:32,height:32,borderRadius:"50%",background:si<doneS?group.color:T.surfaceAlt,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",transition:"all 0.2s",boxShadow:si<doneS?`0 0 8px ${group.color}44`:"none",fontSize:15,fontWeight:800,color:si<doneS?"#fff":T.textMuted }}>
                               {si < doneS ? "✓" : si + 1}
                             </div>
                           ))}
                         </div>
                         {isDone
-                          ? <button onClick={()=>resetExercise(group.id,idx)} style={{ background:T.surface,border:`1px solid ${T.red}30`,borderRadius:9,color:T.red,padding:"6px 14px",cursor:"pointer",fontWeight:800,fontSize:13,transition:"all 0.2s" }}>↩ Undo</button>
-                          : <button onClick={()=>addSet(group.id,idx,ex)} style={{ background:group.color,border:"none",borderRadius:9,color:"#fff",padding:"6px 14px",cursor:"pointer",fontWeight:800,fontSize:13,transition:"all 0.2s" }}>{`+Set ${doneS+1}`}</button>
+                          ? <button onClick={()=>resetExercise(group.id,idx)} aria-label={`Undo ${ex.name}`} style={{ background:T.surface,border:`1px solid ${T.red}30`,borderRadius:9,color:T.red,padding:"6px 14px",cursor:"pointer",fontWeight:800,fontSize:13,transition:"all 0.2s" }}>↩ Undo</button>
+                          : <button onClick={()=>addSet(group.id,idx,ex)} aria-label={`Log set ${doneS+1} of ${ex.name}`} style={{ background:group.color,border:"none",borderRadius:9,color:"#fff",padding:"6px 14px",cursor:"pointer",fontWeight:800,fontSize:13,transition:"all 0.2s" }}>{`+Set ${doneS+1}`}</button>
                         }
                       </div>
                     </div>

@@ -1,6 +1,45 @@
 import { useState } from "react";
+import { z } from "zod";
 import { T, LBL } from "../constants.js";
 import { useWorkout } from "../context.jsx";
+
+// ─── Zod schema ───────────────────────────────────────────────────────────────
+const ExerciseSlotSchema = z.object({
+  category: z.string(),
+  exerciseId: z.string(),
+});
+
+const GroupSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  color: z.string().optional(),
+  exercises: z.array(ExerciseSlotSchema),
+});
+
+const ExerciseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  category: z.string().optional(),
+  muscles: z.array(z.string()).optional(),
+  duration: z.string().optional(),
+  difficulty: z.string().optional(),
+  weight: z.string().optional(),
+  weightUnit: z.string().optional(),
+  notes: z.string().optional(),
+  tips: z.string().optional(),
+  image: z.string().optional(),
+});
+
+const ImportSchema = z.object({
+  version: z.string().optional(),
+  exported: z.string().optional(),
+  exercises: z.record(z.string(), z.array(ExerciseSchema)).optional(),
+  schedule: z.record(z.string(), z.array(GroupSchema)).optional(),
+  workoutLog: z.array(z.object({ date: z.string(), sessionNumber: z.number().optional() }).passthrough()).optional(),
+}).refine(
+  d => d.exercises || d.schedule || d.workoutLog,
+  { message: "JSON must contain at least one of: exercises, schedule, workoutLog" }
+);
 
 export default function ImportExportView() {
   const { exercises, setExercises, schedule, setSchedule, workoutLog, setWorkoutLog } = useWorkout();
@@ -24,36 +63,21 @@ export default function ImportExportView() {
 
   const handleImport = () => {
     if (importText.length > 2 * 1024 * 1024) { setStatus("❌ File too large (max 2 MB)."); return; }
-    try {
-      const data=JSON.parse(importText);
-      // Validate shape
-      const errors = [];
-      if (data.exercises && typeof data.exercises !== "object") errors.push("exercises must be an object");
-      if (data.exercises) {
-        for (const [cat, list] of Object.entries(data.exercises)) {
-          if (!Array.isArray(list)) { errors.push(`exercises.${cat} must be an array`); continue; }
-          for (const ex of list) {
-            if (!ex.id || !ex.name) errors.push(`exercise in ${cat} missing id or name`);
-          }
-        }
-      }
-      if (data.schedule && typeof data.schedule !== "object") errors.push("schedule must be an object");
-      if (data.schedule) {
-        for (const [day, groups] of Object.entries(data.schedule)) {
-          if (!Array.isArray(groups)) { errors.push(`schedule.${day} must be an array`); continue; }
-          for (const g of groups) {
-            if (!g.id || !g.name || !Array.isArray(g.exercises)) errors.push(`group in ${day} missing id, name, or exercises`);
-          }
-        }
-      }
-      if (data.workoutLog && !Array.isArray(data.workoutLog)) errors.push("workoutLog must be an array");
-      if (errors.length > 0) { setStatus(`❌ Invalid data:\n${errors.slice(0,5).join("\n")}${errors.length>5?`\n...and ${errors.length-5} more`:""}`); return; }
-      if (!data.exercises && !data.schedule && !data.workoutLog) { setStatus("❌ No exercises, schedule, or workoutLog found in JSON."); return; }
-      if(data.exercises) setExercises(data.exercises);
-      if(data.schedule) setSchedule(data.schedule);
-      if(data.workoutLog) setWorkoutLog(data.workoutLog);
-      setStatus("✅ Imported!"); setImportText("");
-    } catch { setStatus("❌ Invalid JSON."); }
+    let raw;
+    try { raw = JSON.parse(importText); }
+    catch { setStatus("❌ Invalid JSON."); return; }
+
+    const result = ImportSchema.safeParse(raw);
+    if (!result.success) {
+      const msgs = result.error.issues.slice(0, 5).map(i => `${i.path.join(".") || "root"}: ${i.message}`);
+      setStatus(`❌ Invalid data:\n${msgs.join("\n")}`);
+      return;
+    }
+    const data = result.data;
+    if (data.exercises) setExercises(data.exercises);
+    if (data.schedule) setSchedule(data.schedule);
+    if (data.workoutLog) setWorkoutLog(data.workoutLog);
+    setStatus("✅ Imported!"); setImportText("");
   };
 
   const TA={ width:"100%",background:T.surface,border:`1px solid ${T.border}`,borderRadius:9,padding:12,color:T.text,fontSize:12,fontFamily:"monospace",resize:"vertical",outline:"none",boxSizing:"border-box",lineHeight:1.6 };

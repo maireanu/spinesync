@@ -15,7 +15,24 @@ export function todayKey() {
   return DAYS[d === 0 ? 6 : d - 1];
 }
 
-export function todayISO() { return new Date().toLocaleDateString("en-CA"); }
+export function todayISO() {
+  // Always use local date (not UTC) to avoid midnight timezone drift
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+/** Return a local-time ISO date string offset by `offset` days from today (+future, -past) */
+export function localDateISO(daysOffset = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + daysOffset);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 export function parseSets(duration) {
   const m = duration.match(/^(\d+)\s*[×x]/);
@@ -31,7 +48,7 @@ export function buildSessionPattern(schedule) {
 export function computeStreak(workoutLog) {
   let s = 0;
   for (let i = 0; i < 30; i++) {
-    const iso = new Date(Date.now() - i * 86400000).toISOString().slice(0,10);
+    const iso = localDateISO(-i); // -i means i days ago
     if ((workoutLog || []).find(l => l.date === iso)) s++;
     else if (i > 0) break;
   }

@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { T, DAYS, FULL_DAYS, GROUP_COLORS, CATEGORY_META, INP, LBL } from "../constants.js";
-import { uid, todayKey, todayISO, buildSessionPattern } from "../helpers.js";
+import { uid, todayKey, todayISO, localDateISO, buildSessionPattern } from "../helpers.js";
 import { useWorkout } from "../context.jsx";
 import { Modal } from "../components/ui.jsx";
 
@@ -121,9 +121,8 @@ export default function ScheduleView() {
   const projectedDays = useMemo(() => {
     const completed = (workoutLog || []).filter(l => l.date !== tISO).length;
     return Array.from({ length: 7 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() + i);
-      const iso = date.toISOString().slice(0, 10);
+      const iso = localDateISO(i); // 0=today, 1=tomorrow, etc.
+      const date = new Date(iso + "T12:00:00");
       const dayOfWeek = DAYS[(date.getDay() + 6) % 7];
       const sessionIdx = sessionPattern.length > 0 ? (completed + i) % sessionPattern.length : -1;
       const session = sessionIdx >= 0 ? sessionPattern[sessionIdx] : null;
