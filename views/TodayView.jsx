@@ -205,6 +205,19 @@ function ExerciseItem({ exercise, category, completed, setsDone, totalSets, onTo
             {exercise.muscles.slice(0, 3).join(" · ")}
           </div>
         )}
+        <a
+          href={`https://www.youtube.com/results?search_query=${encodeURIComponent(exercise.name + " exercise how to")}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={e => e.stopPropagation()}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 4, marginTop: 6,
+            fontSize: 11, fontWeight: 700, color: "#ff0000cc",
+            textDecoration: "none", letterSpacing: "0.02em",
+          }}
+        >
+          ▶ YouTube
+        </a>
       </div>
 
       {/* Sets counter */}
