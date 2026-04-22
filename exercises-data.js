@@ -1,21 +1,33 @@
 // exercises-data.js
-// All exercises extracted from:
-//   1_kinetotherapy/exercises.md     → physical_therapy category
-//   2_strength_body_shape/exercises.md → muscle category
-//   3_cardio_breathing/exercises.md  → cardio + breathing categories
+// Diagnosis: Cifoscolioza dorso-lombara + sechele Morbus Scheuermann
+// Equipment : dumbbells 4–24 kg (1.5 kg steps: 4, 5.5, 7, 8.5, 10, 11.5, 13, …) · stick
+//             Domyos elastic bands (Decathlon) — 3 bands: 7 kg / 10 kg / 15 kg
+// Categories: physical_therapy | muscle | cardio | breathing | mobility
 //
-// Usage in spinesync-app.jsx:
-//   import { EXERCISES, SCHEDULE } from "./exercises-data.js";
-//   Replace DEFAULT_EXERCISES and DEFAULT_SCHEDULE with these.
+// Phase 1 = Foundation  (Months 1–2, Apr–Jun 2026)
+// Phase 2 = Progression (Months 3–4, Jun–Aug 2026)
+// Phase 3 = Advanced    (Months 5–6, Aug–Oct 2026)
 //
-// Phase notes stored in the `notes` field:
-//   Phase 1 = Foundation (Months 1–2, Apr–Jun 2026)
-//   Phase 2 = Progression (Months 3–4, Jun–Aug 2026)
-//   Phase 3 = Advanced (Months 5–6, Aug–Oct 2026)
+// ─── 4-Active + 3-Light schedule ──────────────────────────────────────────────
+// Mon = Kinetotherapy — Spine & Posture                  ~35 min
+// Tue = Breathwork morning reset (light)                 ~10 min
+// Wed = Strength — Upper Body Push + Pull + Zone 2       ~50 min
+// Thu = Mobility & Recovery (light)                      ~20 min
+// Fri = Kinetotherapy + Core & Stability                 ~40 min
+// Sat = Active Recovery / Yoga (light)                   ~20 min
+// Sun = Cardio / HIIT (Norwegian)                        ~30 min
+// Session 7 = Sunday → Cardio/HIIT — NOT Strength ✓
+//
+// Garmin activity types: Functional Fitness | Strength Training
+//   Cardio | HIIT | Yoga | Breathing
+// ──────────────────────────────────────────────────────────────────────────────
 
 // ─── PHYSICAL THERAPY (Kinetotherapy) ────────────────────────────────────────
-// Warm-up IDs: kw1–kw2 | Main P1: k01–k10 | Cool-down: kc1–kc3
-// Main P2: k11–k16 | Main P3: k17–k22
+// Scheuermann's / dorsal-lumbar kyphoscoliosis specific protocol
+// McGill Big 3 + Schroth method + thoracic mobility
+// kw1–kw2 = Warm-Up | k01–k10 = Phase 1 | kc1–kc3 = Cool-Down
+// ks1–ks3 = Scheuermann-specific additions
+// k11–k16 = Phase 2 | k17–k22 = Phase 3
 const physical_therapy = [
   // ── Warm-Up (All phases) ────────────────────────────────────────────────────
   {
@@ -103,6 +115,28 @@ const physical_therapy = [
     notes: "Phase 1+ · Start from Week 3",
     tips: "Foam roller horizontal on floor. Sit in front, lie back so roller contacts T7 (lower shoulder blade edge). Arms crossed on chest or hands behind neck. Let gravity create extension — do NOT press into it. Work T7 up to T4 (~5 positions). Do NOT use on lumbar spine. Stop if sharp pain or arm tingling.",
   },
+  // ── Scheuermann-Specific Additions (Phase 1+) ────────────────────────────────
+  {
+    id: "ks1", name: "McKenzie Press-Up (Prone Extension)", image: "",
+    muscles: ["Thoracic Extensors", "Lumbar Extensors", "Erector Spinae"],
+    duration: "2×10 (1–2 sec hold top)", difficulty: "Easy", weight: "", weightUnit: "bodyweight",
+    notes: "Phase 1+ · McKenzie Method · Lumbar-thoracic extension mobilisation",
+    tips: "Lie face down, hands under shoulders (push-up position). Slowly press UP with arms only — hips stay on floor, lower back extends. Go to comfortable range — mild discomfort OK, pain = stop. Lower slowly. The McKenzie Press-Up is the cornerstone of spinal extension therapy for Scheuermann's disc changes.",
+  },
+  {
+    id: "ks2", name: "Modified Curl-Up (McGill Method)", image: "",
+    muscles: ["Rectus Abdominis", "Transversus Abdominis"],
+    duration: "3×8–10 (8 sec hold)", difficulty: "Easy", weight: "", weightUnit: "bodyweight",
+    notes: "Phase 1+ · McGill Big 3 · Safe abdominal work without spine flexion stress",
+    tips: "Lie on back. One knee bent, other leg straight, hand under lumbar curve. Other hand on chest. Lift ONLY head and shoulders slightly — do NOT crunch all the way. Hold 8–10 sec breathing normally. Activates rectus abdominis without disc compression — safe for Scheuermann's discs unlike traditional sit-ups.",
+  },
+  {
+    id: "ks3", name: "Cervical Retraction on Wall", image: "",
+    muscles: ["Deep Cervical Flexors", "Suboccipitals", "Upper Trapezius"],
+    duration: "3×10 (5 sec hold)", difficulty: "Easy", weight: "", weightUnit: "bodyweight",
+    notes: "Phase 1+ · Corrects forward head posture — secondary to Scheuermann's kyphosis",
+    tips: "Stand with back to wall, head touching. Tuck chin to create 'double chin' — head glides straight back along wall. Do NOT tilt up or down. Hold 5 sec. Forward head posture adds ~4 kg of load per cm of forward displacement on the cervical spine. Correcting this is critical alongside thoracic work.",
+  },
   // ── Cool-Down (All phases) ──────────────────────────────────────────────────
   {
     id: "kc1", name: "Child's Pose", image: "",
@@ -145,7 +179,14 @@ const physical_therapy = [
     muscles: ["Glute Medius", "Hip Abductors"],
     duration: "2×15/side", difficulty: "Easy", weight: "", weightUnit: "bodyweight",
     notes: "Phase 2+",
-    tips: "Lie on side, knees bent 45°. Stack hips and shoulders. Keeping feet together, open top knee like a clamshell (30–40°). Lower slowly.",
+    tips: "Lie on side, knees bent 45°. Stack hips and shoulders. Keeping feet together, open top knee like a clamshell (30–40°). Lower slowly. Progression: place Domyos 7 kg band just above the knees once 15 reps feel easy.",
+  },
+  {
+    id: "k13b", name: "Banded Clamshell (Domyos 7 kg)", image: "",
+    muscles: ["Glute Medius", "Hip Abductors", "Glute Minimus"],
+    duration: "3×15/side", difficulty: "Medium", weight: "7", weightUnit: "band",
+    notes: "Phase 2+ · Domyos 7 kg band above knees · Glute medius weakness = main scoliosis gait compensation",
+    tips: "Same position as clamshell but with Domyos 7 kg band looped just above knees. The band adds constant tension through the full arc — the muscle must work concentrically AND eccentrically. Move slowly: 2 sec open, 2 sec return. Glute medius weakness forces the lumbar to compensate during every step — strengthening it is a priority for dorso-lumbar scoliosis.",
   },
   {
     id: "k14", name: "Chin Tucks", image: "",
@@ -186,9 +227,9 @@ const physical_therapy = [
   {
     id: "k19", name: "Bird-Dog + Resistance Band", image: "",
     muscles: ["Multifidus", "Glutes", "Deltoid", "Core"],
-    duration: "2×10/side (10 sec hold)", difficulty: "Hard", weight: "", weightUnit: "band",
-    notes: "Phase 3",
-    tips: "Same as Bird-Dog but hold each rep for 10 seconds. Light resistance band around ankles for the leg extension.",
+    duration: "2×10/side (10 sec hold)", difficulty: "Hard", weight: "7", weightUnit: "band",
+    notes: "Phase 3 · Domyos 7 kg band around ankles",
+    tips: "Same as Bird-Dog but hold each rep for 10 seconds. Loop the Domyos 7 kg band around both ankles for the leg extension. The band pulls the extending leg down and challenges the glutes and multifidus simultaneously.",
   },
   {
     id: "k20", name: "Seated Rowing with Stick", image: "",
@@ -243,9 +284,9 @@ const muscle = [
   {
     id: "sa3", name: "Lateral Raise", image: "",
     muscles: ["Lateral Deltoid", "Supraspinatus"],
-    duration: "3×12", difficulty: "Easy", weight: "2", weightUnit: "kg",
+    duration: "3×12", difficulty: "Easy", weight: "4", weightUnit: "kg",
     notes: "Day A · Phase 1",
-    tips: "Standing or seated, slight bend at elbow. Raise arms out to sides until HORIZONTAL only — no higher. Thumbs slightly down (like pouring a glass). Lower 3 sec. Very light weight — 2–3 kg max initially.",
+    tips: "Standing or seated, slight bend at elbow. Raise arms out to sides until HORIZONTAL only — no higher. Thumbs slightly down (like pouring a glass). Lower 3 sec. Start with 4 kg (lightest available) and use very strict, slow form — this is enough load for Phase 1. Progress to 5.5 kg when 12 reps feel effortless.",
   },
   {
     id: "sa4", name: "Tricep Overhead Extension", image: "",
@@ -265,51 +306,51 @@ const muscle = [
   {
     id: "sb1", name: "One-Arm Dumbbell Row", image: "",
     muscles: ["Rhomboids", "Middle Trapezius", "Lats", "Biceps"],
-    duration: "3×10/side", difficulty: "Medium", weight: "6", weightUnit: "kg",
+    duration: "3×10/side", difficulty: "Medium", weight: "5.5", weightUnit: "kg",
     notes: "Day B · Phase 1 · Supported",
     tips: "Left knee and hand on chair for support. Spine flat as a table — not rounded. Hold dumbbell in right hand, arm hanging. Pull to your HIP (not shoulder), leading with the elbow. Lower slowly. CRITICAL: flat spine throughout.",
   },
   {
     id: "sb2", name: "Bicep Curl", image: "",
     muscles: ["Biceps", "Forearms"],
-    duration: "3×12", difficulty: "Easy", weight: "6", weightUnit: "kg",
+    duration: "3×12", difficulty: "Easy", weight: "5.5", weightUnit: "kg",
     notes: "Day B · Phase 1",
     tips: "Stand upright, palms facing forward. Curl both/alternating dumbbells. Lower 3 sec. No torso swing — elbows stay at sides. Isolation exercise — stay controlled.",
   },
   {
     id: "sb3", name: "Dumbbell Reverse Fly", image: "",
     muscles: ["Posterior Deltoid", "Rhomboids", "Middle Trapezius"],
-    duration: "3×12", difficulty: "Easy", weight: "2", weightUnit: "kg",
+    duration: "3×12", difficulty: "Easy", weight: "4", weightUnit: "kg",
     notes: "Day B · Phase 1",
-    tips: "Sit on chair edge, lean forward so chest nearly touches thighs (spine neutral, not rounded). Dumbbells hanging below, palms facing each other. Raise arms out to HORIZONTAL, squeeze shoulder blades. Lower slowly. 2–3 kg only.",
+    tips: "Sit on chair edge, lean forward so chest nearly touches thighs (spine neutral, not rounded). Dumbbells hanging below, palms facing each other. Raise arms out to HORIZONTAL, squeeze shoulder blades. Lower slowly. 4 kg (lightest available) — this exercise demands extreme control; reduce reps rather than reducing weight.",
   },
   {
-    id: "sb4", name: "Face Pull with Stick", image: "",
+    id: "sb4", name: "Face Pull (Domyos 7 kg band)", image: "",
     muscles: ["Posterior Deltoid", "Infraspinatus", "Rhomboids", "Middle Trapezius"],
-    duration: "3×15", difficulty: "Easy", weight: "", weightUnit: "band",
-    notes: "Day B · Phase 1",
-    tips: "Band at head height; or stick held isometrically. Pull toward face while flaring elbows outward. Squeeze shoulder blades at end range. The most important postural exercise for forward-rounded shoulders. Do every pull day.",
+    duration: "3×15", difficulty: "Easy", weight: "7", weightUnit: "band",
+    notes: "Day B · Phase 1 · Start 7 kg, progress to 10 kg",
+    tips: "Anchor Domyos 7 kg band at head height (door handle, bar). Pull toward face while flaring elbows outward and externally rotating wrists (palms face ceiling at end range). Squeeze shoulder blades at end. The most important postural exercise for forward-rounded shoulders. Do every pull day. When 15 reps are easy, switch to the 10 kg band.",
   },
   {
-    id: "sb5", name: "Stick Pull-Apart", image: "",
+    id: "sb5", name: "Band / Stick Pull-Apart", image: "",
     muscles: ["Rhomboids", "Posterior Deltoid", "Middle Trapezius"],
-    duration: "3×12", difficulty: "Easy", weight: "", weightUnit: "bodyweight",
-    notes: "Day B · Phase 1",
-    tips: "Hold stick at chest height, arms extended. Pull ends apart (as if breaking it) — arms move out to sides until stick touches chest. Keep arms straight. Return slowly. Neutral spine — no lower back arch.",
+    duration: "3×12", difficulty: "Easy", weight: "7", weightUnit: "band",
+    notes: "Day B · Phase 1 · Domyos 7 kg band preferred over stick",
+    tips: "Hold Domyos 7 kg band (or stick) at chest height, arms extended, hands shoulder-width. Pull ends apart until band touches chest — arms stay straight. Return slowly under control. Band provides accommodating resistance (harder at full stretch) which activates rhomboids more effectively than the stick at end range. Neutral spine — no lower back arch.",
   },
   {
     id: "sb6", name: "Hammer Curl", image: "",
     muscles: ["Biceps", "Brachialis", "Forearms"],
-    duration: "2×12", difficulty: "Easy", weight: "6", weightUnit: "kg",
+    duration: "2×12", difficulty: "Easy", weight: "5.5", weightUnit: "kg",
     notes: "Day B · Phase 1",
     tips: "Same as bicep curl but palms face each other (neutral grip, like holding a hammer) throughout the entire movement.",
   },
   {
     id: "sb7", name: "Shoulder External Rotation — Side-Lying", image: "",
     muscles: ["Infraspinatus", "Teres Minor", "Rotator Cuff"],
-    duration: "2×15/side", difficulty: "Easy", weight: "1", weightUnit: "kg",
+    duration: "2×15/side", difficulty: "Easy", weight: "4", weightUnit: "kg",
     notes: "Day B · Phase 1+ · Medical corrective — never skip",
-    tips: "Lie on side. Hold very light dumbbell (1–2 kg). Upper arm PINNED against ribs, elbow at 90°, forearm across waist. Rotate forearm UPWARD until vertical. Lower 3 sec. Upper arm must NOT move. This corrects the internal rotation dominance that reinforces kyphotic curve. Treat as medical, not strength.",
+    tips: "Lie on side. Hold 4 kg dumbbell (lightest available — use extra-slow control: 3 sec up, 3 sec down). Upper arm PINNED against ribs, elbow at 90°, forearm across waist. Rotate forearm UPWARD until vertical. Upper arm must NOT move. If 4 kg causes shoulder strain, perform without weight until rotator cuff strengthens. This corrects the internal rotation dominance that reinforces kyphotic curve. Treat as medical, not strength.",
   },
   {
     id: "sb8", name: "Prone I-Y-T Raises", image: "",
@@ -322,14 +363,14 @@ const muscle = [
   {
     id: "sc1", name: "Goblet Squat", image: "",
     muscles: ["Quadriceps", "Glutes", "Hamstrings", "Core"],
-    duration: "3×12", difficulty: "Easy", weight: "6", weightUnit: "kg",
+    duration: "3×12", difficulty: "Easy", weight: "7", weightUnit: "kg",
     notes: "Day C · Phase 1",
     tips: "Hold dumbbell vertically at chest. Feet shoulder-width, toes slightly out. Descend slowly — chest up, heels on floor, knees tracking over toes. Lower to parallel. Drive up through heels. Safer for kyphosis than barbell squats (dumbbell at front keeps thoracic upright).",
   },
   {
     id: "sc2", name: "Romanian Deadlift — Light", image: "",
     muscles: ["Hamstrings", "Glutes", "Erector Spinae"],
-    duration: "3×10", difficulty: "Medium", weight: "6", weightUnit: "kg",
+    duration: "3×10", difficulty: "Medium", weight: "7", weightUnit: "kg",
     notes: "Day C · Phase 1",
     tips: "Slight knee bend, neutral spine. Hinge at hips — push hips back, lower dumbbells along shins. Stop at hamstring stretch (shin level). Drive hips forward to return. CRITICAL: spine must stay neutral throughout. If thoracic rounds = set is over. Feel the hinge in the hips, not the back.",
   },
@@ -357,14 +398,21 @@ const muscle = [
   {
     id: "sc5b", name: "Pallof Press", image: "",
     muscles: ["Transversus Abdominis", "Obliques", "Core"],
-    duration: "2×10/side", difficulty: "Medium", weight: "", weightUnit: "band",
-    notes: "Day C · Phase 1+ · Anti-rotation",
-    tips: "Band or cable at waist height. Stand sideways ~1 m from anchor. Hands clasped at chest. Press straight out until arms extended — RESIST the rotational pull. Hold 3–5 sec. Return slowly. Anti-rotation core training: safest core exercise for spinal pathologies. Increase band resistance to progress.",
+    duration: "2×10/side", difficulty: "Medium", weight: "7", weightUnit: "band",
+    notes: "Day C · Phase 1+ · Anti-rotation · 7 kg → 10 kg → 15 kg progression",
+    tips: "Anchor Domyos 7 kg band at waist height (door handle). Stand sideways ~1 m from anchor. Hands clasped at chest. Press straight out until arms fully extended — RESIST the rotational pull from the band. Hold 3–5 sec. Return slowly under control. Anti-rotation core training: safest core exercise for spinal pathologies. Progress bands: 7 kg (Phase 1) → 10 kg (Phase 2) → 15 kg (Phase 3).",
+  },
+  {
+    id: "sc_blw", name: "Banded Lateral Walk (Domyos 7 kg)", image: "",
+    muscles: ["Glute Medius", "TFL", "Hip Abductors", "Vastus Lateralis"],
+    duration: "3×10 steps/direction", difficulty: "Easy", weight: "7", weightUnit: "band",
+    notes: "Phase 1+ · Domyos 7 kg band above knees · Key for scoliosis hip stability",
+    tips: "Loop Domyos 7 kg band around legs just above knees. Feet shoulder-width, quarter-squat position (slight bend). Step sideways 10 steps left, 10 steps right = 1 set. Keep band taut at all times — do NOT let feet come closer than shoulder-width. Toes point slightly outward. Glute medius is the primary stabiliser of the pelvis during walking; weakness creates a Trendelenburg gait pattern that amplifies the scoliotic curve with every step. Progress to 10 kg band when 10 steps feel easy.",
   },
   {
     id: "sc6", name: "Glute Bridge — Loaded", image: "",
     muscles: ["Glutes", "Hamstrings", "Core"],
-    duration: "3×15", difficulty: "Easy", weight: "6", weightUnit: "kg",
+    duration: "3×15", difficulty: "Easy", weight: "7", weightUnit: "kg",
     notes: "Day C · Phase 1",
     tips: "Lie on back, dumbbell on lower abdomen/hip crease. Press through heels, lift hips. Squeeze glutes hard at top. Lower 3 sec.",
   },
@@ -372,9 +420,9 @@ const muscle = [
   {
     id: "sa6", name: "Dumbbell Floor Press", image: "",
     muscles: ["Pectorals", "Triceps", "Anterior Deltoid"],
-    duration: "4×10", difficulty: "Medium", weight: "6", weightUnit: "kg",
+    duration: "4×10", difficulty: "Medium", weight: "7", weightUnit: "kg",
     notes: "Day A · Phase 2 · Replaces Incline Push-Up",
-    tips: "Lie on back, knees bent. Dumbbells at lower chest, elbows at 45°. Press both up until fully extended, pause 1 sec. Lower 3 sec. Floor prevents shoulder hyperextension — intentional and safe for kyphosis. Start 5–8 kg.",
+    tips: "Lie on back, knees bent. Dumbbells at lower chest, elbows at 45°. Press both up until fully extended, pause 1 sec. Lower 3 sec. Floor prevents shoulder hyperextension — intentional and safe for kyphosis. Start 7 kg → 8.5 kg → 10 kg as strength builds.",
   },
   {
     id: "sa7", name: "Scapular Push-Up Isolation", image: "",
@@ -415,7 +463,7 @@ const muscle = [
   {
     id: "sa10", name: "Single-Arm Floor Press", image: "",
     muscles: ["Pectorals", "Triceps", "Core", "Obliques"],
-    duration: "3×10/arm", difficulty: "Hard", weight: "8", weightUnit: "kg",
+    duration: "3×10/arm", difficulty: "Hard", weight: "8.5", weightUnit: "kg",
     notes: "Day A · Phase 3",
     tips: "Same position as floor press but one arm at a time. Non-pressing arm rests at side. Single-arm press requires core and obliques to resist rotation — doubles as anti-rotation core work.",
   },
@@ -429,7 +477,7 @@ const muscle = [
   {
     id: "sc8", name: "Bulgarian Split Squat", image: "",
     muscles: ["Quadriceps", "Glutes", "Hamstrings", "Hip Flexors"],
-    duration: "3×8/leg", difficulty: "Hard", weight: "8", weightUnit: "kg",
+    duration: "3×8/leg", difficulty: "Hard", weight: "8.5", weightUnit: "kg",
     notes: "Day C · Phase 3 · Replaces Reverse Lunge",
     tips: "Stand in front of chair. Rear foot elevated on chair. Lower back knee straight down (3 sec descent). Push through front heel. Front knee above ankle, upper body upright. Start without weight, progress to dumbbells at sides.",
   },
@@ -515,6 +563,81 @@ const breathing = [
     notes: "Zone 2 only · Norwegian cornerstone",
     tips: "Breathe ONLY through the nose during all Zone 2 cardio. If you cannot, you are going too fast. Nasal breathing produces nitric oxide, filters and humidifies air, and enforces correct training intensity. Takes 2–4 weeks to adapt. Measure progress monthly with the BOLT score.",
   },
+  {
+    id: "br_sigh", name: "Physiological Double Sigh", image: "",
+    muscles: ["Diaphragm", "Autonomic Nervous System"],
+    duration: "1–5 cycles", difficulty: "Easy", weight: "", weightUnit: "",
+    notes: "All sessions · Garmin: Breathing · Huberman: fastest real-time stress tool",
+    tips: "Inhale fully through nose → at the top, sniff a SECOND short inhale to fully inflate lungs → long slow exhale through mouth. The double inhale re-inflates collapsed alveoli and triggers the strongest parasympathetic response possible. 1–3 cycles drops acute stress within 20–30 seconds. Huberman Lab: \"the only real-time technique that works within 1–2 breaths.\"",
+  },
+  {
+    id: "br_nsdr", name: "NSDR — Non-Sleep Deep Rest (10 min)", image: "",
+    muscles: ["Autonomic Nervous System", "Dopamine System"],
+    duration: "10–20 min", difficulty: "Easy", weight: "", weightUnit: "",
+    notes: "Recovery days · Garmin: Yoga · Huberman: restores dopamine + cognitive performance",
+    tips: "Lie flat, eyes closed. Follow a Yoga Nidra or NSDR body-scan audio (YouTube: 'Huberman NSDR 10 min' is free). Systematically relax each body part feet → head. Huberman research: 20-min NSDR after sleep deprivation restores performance close to a full night's sleep. Activates the default mode network and dopamine restoration. Perfect for Tue/Sat light sessions.",
+  },
+  {
+    id: "br_co2", name: "BOLT Score — CO₂ Tolerance Test", image: "",
+    muscles: ["Diaphragm", "Respiratory Control"],
+    duration: "~2 min (assessment)", difficulty: "Easy", weight: "", weightUnit: "",
+    notes: "Monthly assessment · Track respiratory progress · BOLT > 25 = good",
+    tips: "Breathe normally 2 min. Take a normal exhale through nose. Pinch nose and TIME until FIRST urge to breathe (not until gasping). Record score. < 10 sec = poor. 10–25 = average. > 25 = good. > 40 = athletic. Improves ~2–3 sec/week with consistent nasal + box breathing. Correlates with exercise performance and spinal pain management.",
+  },
+];
+
+// ─── MOBILITY / YOGA ─────────────────────────────────────────────────────────
+// Recovery + cool-down. Garmin type: Yoga
+const mobility = [
+  {
+    id: "mob1", name: "Open Book — Thoracic Rotation", image: "",
+    muscles: ["Thoracic Rotators", "Intercostals", "Obliques"],
+    duration: "10 reps/side", difficulty: "Easy", weight: "", weightUnit: "bodyweight",
+    notes: "Phase 1+ · Garmin: Yoga · Best single mobility drill for Scheuermann's",
+    tips: "Lie on side, knees stacked bent 90° (pillow between optional). Both arms extended forward. Slowly open top arm in a big arc overhead — follow with eyes, let thoracic spine rotate open. Hips stay stacked. Return slowly. This is the most targeted exercise for the thoracic cage tightness of Scheuermann's disease.",
+  },
+  {
+    id: "mob2", name: "World's Greatest Stretch", image: "",
+    muscles: ["Hip Flexors", "Thoracic Spine", "Hamstrings", "Groin", "Shoulders"],
+    duration: "5 reps/side", difficulty: "Medium", weight: "", weightUnit: "bodyweight",
+    notes: "Phase 1+ · Garmin: Yoga · Full-body mobility in one movement",
+    tips: "Push-up position. Step right foot to right hand (lunge). Drop left knee. Rotate right arm to ceiling, follow with eyes. Return arm. Push hips back for hamstring. Return to start = 1 rep. Perfect for general health and warm-up alternative. Covers all the hip + thoracic restrictions of kyphoscoliosis in a single sequence.",
+  },
+  {
+    id: "mob3", name: "Hip 90/90 Mobility", image: "",
+    muscles: ["Hip External Rotators", "Piriformis", "Glute Medius", "Hip Capsule"],
+    duration: "90 sec/side", difficulty: "Easy", weight: "", weightUnit: "bodyweight",
+    notes: "Phase 1+ · Garmin: Yoga · Hip restriction = lumbar compensation",
+    tips: "Sit on floor, one shin forward, one shin to side (both bent 90°). Shift weight toward back leg (internal rotation) 30 sec → forward leg (external rotation) 30 sec → hold deepest position. Limited hip rotation forces lumbar to compensate during gait — fixing this directly reduces low-back pain in kyphoscoliosis.",
+  },
+  {
+    id: "mob4", name: "Thoracic Spine CARs", image: "",
+    muscles: ["Thoracic Rotators", "Erector Spinae", "Intercostals"],
+    duration: "5 circles/direction", difficulty: "Medium", weight: "", weightUnit: "bodyweight",
+    notes: "Phase 1+ · FRC — Controlled Articular Rotations · Maintains joint health",
+    tips: "Sit on chair edge, arms crossed. SLOWLY rotate thoracic: forward flex → side bend → extension → other side → return. Only T4–T10 moves — lumbar stays neutral. 1 full revolution = 1 rep. 5 each direction. CARs (Functional Range Conditioning) are specifically recommended for Scheuermann's disc degeneration to maintain costovertebral joint mobility.",
+  },
+  {
+    id: "mob5", name: "Thread the Needle", image: "",
+    muscles: ["Thoracic Rotators", "Rhomboids", "Posterior Shoulder"],
+    duration: "8 reps/side (3 sec hold)", difficulty: "Easy", weight: "", weightUnit: "bodyweight",
+    notes: "Phase 1+ · Garmin: Yoga · Active thoracic rotation",
+    tips: "Hands and knees. Slide right hand under body rotating thoracic — right shoulder toward floor. Extend left arm overhead. Hold 3 sec, breathe into the rotation. Return. The threading motion exaggerates thoracic rotation beyond passive range. Ideal after foam roller to maximise the mobility window.",
+  },
+  {
+    id: "mob6", name: "Doorframe Lat & Thoracic Hang", image: "",
+    muscles: ["Latissimus Dorsi", "Thoracic Extensors", "Shoulder Girdle", "Spine"],
+    duration: "3×30 sec", difficulty: "Easy", weight: "", weightUnit: "bodyweight",
+    notes: "Phase 1+ · Spinal decompression + lat stretch",
+    tips: "Grip sturdy doorframe overhead (or a chin-up bar). Keep feet on floor (partial hang). Let gravity decompress spine. Breathe deeply laterally. The latissimus dorsi is an internal rotator of the shoulder and spinal flexor — tightness directly contributes to kyphosis. Hanging also provides gentle intervertebral traction. Progress: gradually take more weight off feet.",
+  },
+  {
+    id: "mob7", name: "Figure-4 Hip Stretch (Supine)", image: "",
+    muscles: ["Piriformis", "Glute Medius", "Hip External Rotators"],
+    duration: "60 sec/side", difficulty: "Easy", weight: "", weightUnit: "bodyweight",
+    notes: "Phase 1+ · Garmin: Yoga · Piriformis tightness → sciatic-type pain in scoliosis",
+    tips: "Lie on back, knees bent. Cross right ankle over left thigh (number-4 shape). Flex right foot. Hug left thigh toward chest or keep left foot on floor. Hold 60 sec minimum per side. The piriformis shares proximity with the sciatic nerve and is commonly tight in dorsal-lumbar scoliosis. Long holds (60 sec+) are needed for fascia.",
+  },
 ];
 
 // ─── IMAGES ──────────────────────────────────────────────────────────────────
@@ -525,45 +648,71 @@ function applyImages(list) {
   return list.map(ex => ({ ...ex, image: EXERCISE_IMAGES[ex.id] || ex.image || "" }));
 }
 
+// ─── CARDIO additions ────────────────────────────────────────────────────────
+const cardio_extra = [
+  {
+    id: "ca_walk", name: "Morning Sunlight Walk", image: "",
+    muscles: ["Cardiovascular System", "Circadian Rhythm"],
+    duration: "10–20 min", difficulty: "Easy", weight: "", weightUnit: "bodyweight",
+    notes: "Daily habit · Garmin: Walk · Huberman Protocol #1",
+    tips: "Walk outside within 30–60 min of waking. Eyes open toward sky (not at the sun). Even overcast sky works — 10× more photons than indoors. Sets circadian clock, boosts dopamine and serotonin, improves night sleep. Huberman: \"the single most impactful daily habit for long-term health.\"",
+  },
+  {
+    id: "ca_tabata", name: "Tabata Protocol (4 min)", image: "",
+    muscles: ["Cardiovascular System", "Full Body", "Anaerobic Capacity"],
+    duration: "4 min (8 × 20+10 sec)", difficulty: "Hard", weight: "", weightUnit: "bodyweight",
+    notes: "Phase 2+ · Garmin: HIIT · Alternative when time is short",
+    tips: "Choose: step-ups, jumping jacks, shadow boxing, or high knees. 20 sec MAX effort → 10 sec rest × 8 rounds = 4 min total. Tabata 1996: improves both aerobic AND anaerobic capacity simultaneously. On Garmin: log as HIIT. Use on days with only 10–15 min available.",
+  },
+];
+
 // ─── EXERCISES ────────────────────────────────────────────────────────────────
+function mergeById(base, extras) {
+  const ids = new Set(base.map(e => e.id));
+  return [...base, ...extras.filter(e => !ids.has(e.id))];
+}
+
 export const EXERCISES = {
   physical_therapy: applyImages(physical_therapy),
-  muscle: applyImages(muscle),
-  cardio: applyImages(cardio),
-  breathing: applyImages(breathing),
+  muscle:           applyImages(muscle),
+  cardio:           applyImages(mergeById(cardio, cardio_extra)),
+  breathing:        applyImages(breathing),
+  mobility:         applyImages(mobility),
 };
 
-// ─── DEFAULT SCHEDULE ─────────────────────────────────────────────────────────
-// Phase 1 — Week 1 — Pattern 0 (Tue=Day A Push, Thu=Day B Pull, Sun=Day C Legs)
-// Schedule follows SCHEDULE.md:
-//   Mon/Wed/Fri/Sat = Kinetotherapy (30–35 min)
-//   Tue/Thu/Sun     = Strength + Cardio (40–45 min)
+// ─── SCHEDULE ─────────────────────────────────────────────────────────────────
+// 4 Active (Mon/Wed/Fri/Sun) + 3 Light recovery (Tue/Thu/Sat)
+// Session pattern: S1=Mon S2=Tue S3=Wed S4=Thu S5=Fri S6=Sat S7=Sun
+// Session 7 = Sunday = Cardio/HIIT — NOT Strength ✓
 export const SCHEDULE = {
+  // ── Monday: Kinetotherapy — Spine & Posture (~35 min) ─────────────────────
   Mon: [
     {
-      id: "kg_warmup", name: "K — Warm-Up", color: "#4f9cf9",
+      id: "mon_kw", name: "Kineto · Warm-Up", color: "#3b82f6",
+      garminType: "Functional Fitness",
       exercises: [
         { category: "physical_therapy", exerciseId: "kw1" },
         { category: "physical_therapy", exerciseId: "kw2" },
       ],
     },
     {
-      id: "kg_main1", name: "K — Main (Phase 1)", color: "#4f9cf9",
+      id: "mon_km", name: "Kineto · Spine & Posture", color: "#3b82f6",
+      garminType: "Functional Fitness",
       exercises: [
-        { category: "physical_therapy", exerciseId: "k01" },
-        { category: "physical_therapy", exerciseId: "k02" },
-        { category: "physical_therapy", exerciseId: "k03" },
-        { category: "physical_therapy", exerciseId: "k04" },
-        { category: "physical_therapy", exerciseId: "k05" },
-        { category: "physical_therapy", exerciseId: "k06" },
-        { category: "physical_therapy", exerciseId: "k07" },
-        { category: "physical_therapy", exerciseId: "k08" },
-        { category: "physical_therapy", exerciseId: "k09" },
-        { category: "physical_therapy", exerciseId: "k10" },
+        { category: "physical_therapy", exerciseId: "k02" }, // Towel Roll — MOST IMPORTANT
+        { category: "physical_therapy", exerciseId: "k01" }, // Cat-Cow
+        { category: "physical_therapy", exerciseId: "k05" }, // Prone Cobra
+        { category: "physical_therapy", exerciseId: "k06" }, // Wall Angels
+        { category: "physical_therapy", exerciseId: "k07" }, // Hip Flexor Stretch
+        { category: "physical_therapy", exerciseId: "k08" }, // Pectoral Stretch
+        { category: "physical_therapy", exerciseId: "k09" }, // Serratus Wall Push
+        { category: "physical_therapy", exerciseId: "ks1" }, // McKenzie Press-Up
+        { category: "physical_therapy", exerciseId: "ks3" }, // Cervical Retraction
       ],
     },
     {
-      id: "kg_cooldown", name: "K — Cool-Down", color: "#4f9cf9",
+      id: "mon_kcd", name: "Kineto · Cool-Down", color: "#3b82f6",
+      garminType: "Yoga",
       exercises: [
         { category: "physical_therapy", exerciseId: "kc1" },
         { category: "physical_therapy", exerciseId: "kc2" },
@@ -571,122 +720,104 @@ export const SCHEDULE = {
       ],
     },
   ],
+
+  // ── Tuesday: Breathwork — Morning Reset (~10 min, light day) ─────────────
   Tue: [
     {
-      id: "st_warmup", name: "Warm-Up", color: "#f9c74f",
+      id: "tue_br", name: "Breathwork · Morning Reset", color: "#8b5cf6",
+      garminType: "Breathing",
       exercises: [
-        { category: "muscle", exerciseId: "sw1" },
-      ],
-    },
-    {
-      id: "st_dayA", name: "Day A — Push", color: "#f97b4f",
-      exercises: [
-        { category: "muscle", exerciseId: "sa1" },
-        { category: "muscle", exerciseId: "sa2" },
-        { category: "muscle", exerciseId: "sa3" },
-        { category: "muscle", exerciseId: "sa4" },
-        { category: "muscle", exerciseId: "sa5" },
-      ],
-    },
-    {
-      id: "st_cardioA", name: "Cardio + Breathing", color: "#4fdb91",
-      exercises: [
-        { category: "cardio",    exerciseId: "ca_z2" },
-        { category: "breathing", exerciseId: "br_d" },
-        { category: "breathing", exerciseId: "br_box" },
-        { category: "breathing", exerciseId: "br_te" },
-        { category: "breathing", exerciseId: "br_478" },
+        { category: "breathing", exerciseId: "br_sigh" },
+        { category: "breathing", exerciseId: "br_d"    },
+        { category: "breathing", exerciseId: "br_box"  },
+        { category: "breathing", exerciseId: "br_478"  },
       ],
     },
   ],
+
+  // ── Wednesday: Strength — Upper Body Push + Pull + Zone 2 (~50 min) ──────
   Wed: [
     {
-      id: "kg_warmup_w", name: "K — Warm-Up", color: "#4f9cf9",
+      id: "wed_sw", name: "Strength · Warm-Up", color: "#f59e0b",
+      garminType: "Strength Training",
       exercises: [
-        { category: "physical_therapy", exerciseId: "kw1" },
-        { category: "physical_therapy", exerciseId: "kw2" },
+        { category: "muscle", exerciseId: "sw1" },
       ],
     },
     {
-      id: "kg_main_w", name: "K — Main (Phase 1)", color: "#4f9cf9",
+      id: "wed_sp", name: "Strength · Push", color: "#ef4444",
+      garminType: "Strength Training",
       exercises: [
-        { category: "physical_therapy", exerciseId: "k01" },
-        { category: "physical_therapy", exerciseId: "k02" },
-        { category: "physical_therapy", exerciseId: "k03" },
-        { category: "physical_therapy", exerciseId: "k04" },
-        { category: "physical_therapy", exerciseId: "k05" },
-        { category: "physical_therapy", exerciseId: "k06" },
-        { category: "physical_therapy", exerciseId: "k07" },
-        { category: "physical_therapy", exerciseId: "k08" },
-        { category: "physical_therapy", exerciseId: "k09" },
-        { category: "physical_therapy", exerciseId: "k10" },
+        { category: "muscle", exerciseId: "sa1" }, // Incline Push-Up
+        { category: "muscle", exerciseId: "sa2" }, // Shoulder Press
+        { category: "muscle", exerciseId: "sa3" }, // Lateral Raise
+        { category: "muscle", exerciseId: "sa4" }, // Tricep Extension
       ],
     },
     {
-      id: "kg_cooldown_w", name: "K — Cool-Down", color: "#4f9cf9",
+      id: "wed_spl", name: "Strength · Pull (2× push volume for kyphosis)", color: "#ef4444",
+      garminType: "Strength Training",
       exercises: [
-        { category: "physical_therapy", exerciseId: "kc1" },
-        { category: "physical_therapy", exerciseId: "kc2" },
-        { category: "physical_therapy", exerciseId: "kc3" },
+        { category: "muscle", exerciseId: "sb8" }, // I-Y-T (scapular warm-up)
+        { category: "muscle", exerciseId: "sb1" }, // One-Arm Row
+        { category: "muscle", exerciseId: "sb4" }, // Face Pull (band)
+        { category: "muscle", exerciseId: "sb5" }, // Band Pull-Apart
+        { category: "muscle", exerciseId: "sb3" }, // Reverse Fly
+        { category: "muscle", exerciseId: "sb7" }, // Shoulder External Rotation
+      ],
+    },
+    {
+      id: "wed_cd", name: "Cardio · Zone 2 Finish", color: "#0d9488",
+      garminType: "Cardio",
+      exercises: [
+        { category: "cardio", exerciseId: "ca_z2" },
       ],
     },
   ],
+
+  // ── Thursday: Mobility & Recovery (~20 min, light day) ───────────────────
   Thu: [
     {
-      id: "st_warmup_t", name: "Warm-Up", color: "#f9c74f",
+      id: "thu_mob", name: "Yoga · Mobility & Recovery", color: "#f59e0b",
+      garminType: "Yoga",
       exercises: [
-        { category: "muscle", exerciseId: "sw1" },
-      ],
-    },
-    {
-      id: "st_dayB", name: "Day B — Pull", color: "#f97b4f",
-      exercises: [
-        { category: "muscle", exerciseId: "sb8" },
-        { category: "muscle", exerciseId: "sb1" },
-        { category: "muscle", exerciseId: "sb3" },
-        { category: "muscle", exerciseId: "sb4" },
-        { category: "muscle", exerciseId: "sb5" },
-        { category: "muscle", exerciseId: "sb2" },
-        { category: "muscle", exerciseId: "sb6" },
-        { category: "muscle", exerciseId: "sb7" },
-      ],
-    },
-    {
-      id: "st_cardioB", name: "Cardio + Breathing", color: "#4fdb91",
-      exercises: [
-        { category: "cardio",    exerciseId: "ca_z2" },
-        { category: "breathing", exerciseId: "br_d" },
-        { category: "breathing", exerciseId: "br_box" },
-        { category: "breathing", exerciseId: "br_te" },
-        { category: "breathing", exerciseId: "br_478" },
+        { category: "mobility", exerciseId: "mob5" }, // Thread the Needle
+        { category: "mobility", exerciseId: "mob1" }, // Open Book
+        { category: "mobility", exerciseId: "mob4" }, // Thoracic CARs
+        { category: "mobility", exerciseId: "mob3" }, // Hip 90/90
+        { category: "mobility", exerciseId: "mob7" }, // Figure-4
       ],
     },
   ],
+
+  // ── Friday: Kinetotherapy + Core & Stability (~40 min) ───────────────────
   Fri: [
     {
-      id: "kg_warmup_f", name: "K — Warm-Up", color: "#4f9cf9",
+      id: "fri_kw", name: "Kineto · Warm-Up", color: "#3b82f6",
+      garminType: "Functional Fitness",
       exercises: [
         { category: "physical_therapy", exerciseId: "kw1" },
         { category: "physical_therapy", exerciseId: "kw2" },
       ],
     },
     {
-      id: "kg_main_f", name: "K — Main (Phase 1)", color: "#4f9cf9",
+      id: "fri_km", name: "Kineto · Core & Stability (McGill Big 3)", color: "#3b82f6",
+      garminType: "Functional Fitness",
       exercises: [
-        { category: "physical_therapy", exerciseId: "k01" },
-        { category: "physical_therapy", exerciseId: "k02" },
-        { category: "physical_therapy", exerciseId: "k03" },
-        { category: "physical_therapy", exerciseId: "k04" },
-        { category: "physical_therapy", exerciseId: "k05" },
-        { category: "physical_therapy", exerciseId: "k06" },
-        { category: "physical_therapy", exerciseId: "k07" },
-        { category: "physical_therapy", exerciseId: "k08" },
-        { category: "physical_therapy", exerciseId: "k09" },
-        { category: "physical_therapy", exerciseId: "k10" },
+        { category: "physical_therapy", exerciseId: "k03" },  // Bird-Dog (McGill)
+        { category: "physical_therapy", exerciseId: "k04" },  // Dead Bug
+        { category: "physical_therapy", exerciseId: "ks2" },  // Modified Curl-Up (McGill)
+        { category: "physical_therapy", exerciseId: "k09" },  // Serratus Push
+        { category: "physical_therapy", exerciseId: "k10" },  // Foam Roller
+        { category: "physical_therapy", exerciseId: "k12" },  // Glute Bridge
+        { category: "physical_therapy", exerciseId: "k13" },  // Clamshell (bodyweight → 7kg band)
+        { category: "physical_therapy", exerciseId: "k14" },  // Chin Tucks
+        { category: "muscle",           exerciseId: "sc_blw" }, // Banded Lateral Walk
       ],
     },
     {
-      id: "kg_cooldown_f", name: "K — Cool-Down", color: "#4f9cf9",
+      id: "fri_kcd", name: "Kineto · Cool-Down", color: "#3b82f6",
+      garminType: "Yoga",
       exercises: [
         { category: "physical_therapy", exerciseId: "kc1" },
         { category: "physical_therapy", exerciseId: "kc2" },
@@ -694,65 +825,52 @@ export const SCHEDULE = {
       ],
     },
   ],
+
+  // ── Saturday: Active Recovery / Yoga (~20 min, light day) ────────────────
   Sat: [
     {
-      id: "kg_warmup_s", name: "K — Warm-Up", color: "#4f9cf9",
+      id: "sat_mob", name: "Yoga · Active Recovery", color: "#f59e0b",
+      garminType: "Yoga",
       exercises: [
-        { category: "physical_therapy", exerciseId: "kw1" },
-        { category: "physical_therapy", exerciseId: "kw2" },
+        { category: "mobility", exerciseId: "mob2" }, // World's Greatest Stretch
+        { category: "mobility", exerciseId: "mob6" }, // Doorframe Hang
+        { category: "mobility", exerciseId: "mob1" }, // Open Book
+        { category: "mobility", exerciseId: "mob3" }, // Hip 90/90
       ],
     },
     {
-      id: "kg_main_s", name: "K — Main (Phase 1)", color: "#4f9cf9",
+      id: "sat_nsdr", name: "Breathwork · NSDR Recovery", color: "#8b5cf6",
+      garminType: "Breathing",
       exercises: [
-        { category: "physical_therapy", exerciseId: "k01" },
-        { category: "physical_therapy", exerciseId: "k02" },
-        { category: "physical_therapy", exerciseId: "k03" },
-        { category: "physical_therapy", exerciseId: "k04" },
-        { category: "physical_therapy", exerciseId: "k05" },
-        { category: "physical_therapy", exerciseId: "k06" },
-        { category: "physical_therapy", exerciseId: "k07" },
-        { category: "physical_therapy", exerciseId: "k08" },
-        { category: "physical_therapy", exerciseId: "k09" },
-        { category: "physical_therapy", exerciseId: "k10" },
-      ],
-    },
-    {
-      id: "kg_cooldown_s", name: "K — Cool-Down", color: "#4f9cf9",
-      exercises: [
-        { category: "physical_therapy", exerciseId: "kc1" },
-        { category: "physical_therapy", exerciseId: "kc2" },
-        { category: "physical_therapy", exerciseId: "kc3" },
+        { category: "breathing", exerciseId: "br_nsdr" },
+        { category: "breathing", exerciseId: "br_d"    },
       ],
     },
   ],
+
+  // ── Sunday: Cardio / HIIT (~30 min) — SESSION 7, NOT STRENGTH ✓ ──────────
   Sun: [
     {
-      id: "st_warmup_su", name: "Warm-Up", color: "#f9c74f",
+      id: "sun_wu", name: "Cardio · Easy Warm-Up (Zone 2)", color: "#0d9488",
+      garminType: "Cardio",
       exercises: [
-        { category: "muscle", exerciseId: "sw1" },
+        { category: "cardio", exerciseId: "ca_z2" },
       ],
     },
     {
-      id: "st_dayC", name: "Day C — Legs & Core", color: "#f97b4f",
+      id: "sun_hiit", name: "HIIT · Norwegian 2×4 Intervals", color: "#0d9488",
+      garminType: "HIIT",
       exercises: [
-        { category: "muscle", exerciseId: "sc1" },
-        { category: "muscle", exerciseId: "sc3" },
-        { category: "muscle", exerciseId: "sc4" },
-        { category: "muscle", exerciseId: "sc2" },
-        { category: "muscle", exerciseId: "sc5" },
-        { category: "muscle", exerciseId: "sc5b" },
-        { category: "muscle", exerciseId: "sc6" },
+        { category: "cardio", exerciseId: "ca_2x4" },
       ],
     },
     {
-      id: "st_cardioC", name: "Cardio + Breathing", color: "#4fdb91",
+      id: "sun_cd", name: "Breathwork · Post-HIIT Recovery", color: "#8b5cf6",
+      garminType: "Breathing",
       exercises: [
-        { category: "cardio",    exerciseId: "ca_z2" },
-        { category: "breathing", exerciseId: "br_d" },
-        { category: "breathing", exerciseId: "br_box" },
-        { category: "breathing", exerciseId: "br_te" },
-        { category: "breathing", exerciseId: "br_478" },
+        { category: "breathing", exerciseId: "br_sigh" },
+        { category: "breathing", exerciseId: "br_box"  },
+        { category: "breathing", exerciseId: "br_478"  },
       ],
     },
   ],

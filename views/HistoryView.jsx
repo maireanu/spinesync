@@ -120,10 +120,22 @@ export default function HistoryView() {
           <div style={{ display:"flex",alignItems:"center",gap:14 }}>
             <div style={{ width:8,height:8,borderRadius:"50%",background:T.accent,flexShrink:0 }} />
             <div style={{ flex:1 }}>
-              <div style={{ fontWeight:700,color:T.text,fontSize:14 }}>{log.sessionNumber ? `Session ${log.sessionNumber}` : "Workout"}{log.sessionDay ? <span style={{ fontWeight:500,color:T.textMuted,fontSize:12,marginLeft:6 }}>{log.sessionDay} routine</span> : ""}</div>
-              <div style={{ fontSize:12,color:T.textMuted,marginTop:1 }}>{log.exerciseCount} exercises · {log.groupCount} groups</div>
+              <div style={{ display:"flex",alignItems:"center",gap:7,flexWrap:"wrap" }}>
+                <span style={{ fontWeight:700,color:T.text,fontSize:14 }}>
+                  {log.sessionLabel || "Workout"}
+                </span>
+                {log.garminType && (
+                  <span style={{ fontSize:10,fontWeight:700,letterSpacing:"0.05em",background:T.accent+"14",color:T.accent,border:`1px solid ${T.accent}30`,borderRadius:5,padding:"1px 7px" }}>
+                    {log.garminType}
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize:12,color:T.textMuted,marginTop:2 }}>
+                {log.exerciseCount||0} exercises
+                {log.duration ? ` · ${log.duration} min` : ""}
+              </div>
             </div>
-            <div style={{ fontSize:12,color:T.textMuted,textAlign:"right" }}>
+            <div style={{ fontSize:12,color:T.textMuted,textAlign:"right",flexShrink:0 }}>
               {new Date(log.date + "T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})}
             </div>
             {confirmDelete === log.date ? (
@@ -138,16 +150,6 @@ export default function HistoryView() {
             >×</button>
             )}
           </div>
-          {log.exercises && log.exercises.length > 0 && (
-            <div style={{ marginTop:8,paddingLeft:22,display:"flex",flexWrap:"wrap",gap:4 }}>
-              {log.exercises.slice(0,6).map((e,ei)=>(
-                <span key={ei} style={{ fontSize:10,background:T.surface,border:`1px solid ${T.border}`,borderRadius:6,padding:"2px 7px",color:T.textMuted }}>
-                  {e.name}{e.weight ? ` · ${e.weight}${e.weightUnit}` : ""}
-                </span>
-              ))}
-              {log.exercises.length > 6 && <span style={{ fontSize:10,color:T.textMuted,alignSelf:"center" }}>+{log.exercises.length-6} more</span>}
-            </div>
-          )}
         </div>
       ))}
     </div>

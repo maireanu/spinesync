@@ -88,12 +88,13 @@ export const DARK_VARS = {
   "--c-modal-overlay":"rgba(0,0,10,0.65)",
 };
 
-export const GROUP_COLORS = [T.blue, T.red, T.teal, T.purple, T.amber, T.pink];
+export const GROUP_COLORS = [T.blue, T.red, T.teal, T.purple, T.amber, T.pink, T.green];
 export const CATEGORY_META = {
-  physical_therapy: { label: "Physical Therapy", icon: "🩺", color: T.blue },
-  muscle:           { label: "Muscle",            icon: "💪", color: T.red },
-  cardio:           { label: "Cardio",            icon: "🏃", color: T.teal },
-  breathing:        { label: "Breathing",         icon: "🫁", color: T.purple },
+  physical_therapy: { label: "Kinetotherapy",  icon: "🩺", color: T.blue   },
+  muscle:           { label: "Strength",        icon: "💪", color: T.red    },
+  cardio:           { label: "Cardio / HIIT",   icon: "🏃", color: T.teal   },
+  breathing:        { label: "Breathwork",      icon: "🫁", color: T.purple },
+  mobility:         { label: "Mobility / Yoga", icon: "🧘", color: T.amber  },
 };
 export const WEIGHT_UNITS = ["kg","lbs","band","bodyweight"];
 export const DIFF_COLOR = { Easy: T.green, Medium: T.amber, Hard: T.red };
